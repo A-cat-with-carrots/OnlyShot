@@ -1,0 +1,85 @@
+{
+  "video_id_prefix": "SD-XXX-EPxx",
+  "episode": 0,
+  "episode_title": "<标题>",
+  "total_duration_seconds": 30,
+  "fps": 30,
+  "resolution": "1080x1920",
+  "aspect_ratio": "9:16",
+  "platform": "<红果 / 抖音 / ...>",
+  "subtitle": true,
+  "synopsis": "<本集 100 字概要>",
+  "emotion_tone": "<情感基调>",
+  "visual_style": {
+    "style_name": "<风格名>",
+    "keywords": "<英文关键词串供 prompt 末尾>",
+    "lighting": "<low key / high key / natural / ...>",
+    "color_palette": ["#XXXXXX", "#XXXXXX", "#XXXXXX"]
+  },
+  "characters_in_episode": ["<角色1>", "<角色2>"],
+  "scenes_in_episode": ["scene_01"],
+  "props_in_episode": [],
+  "connection": {
+    "from_previous": "<与上集的衔接>",
+    "to_next": "<为下集的铺垫>"
+  },
+  "part_a": {
+    "video_id": "SD-XXX-EPxx-A",
+    "label": "上",
+    "time_range": "00:00-00:15",
+    "duration_seconds": 15,
+    "atmosphere": {
+      "overall_mood": "<上半部分氛围总描述>",
+      "lighting": "<>",
+      "weather": "<>"
+    },
+    "bgm": {
+      "description": "<具体音效配方>",
+      "mood": "<>"
+    },
+    "storyboard_9grid": [
+      {
+        "grid_number": 1,
+        "time_start": 0.0,
+        "time_end": 1.67,
+        "scene_description": "<50 字画面描述>",
+        "camera": {
+          "type": "<远景|中景|近景|特写|大特写>",
+          "movement": "<固定|推|拉|摇|移|跟|升|降>",
+          "angle": "<平视|俯视|仰视|正面|侧面|背面>"
+        },
+        "characters": [
+          {
+            "name": "<角色名>",
+            "action": "<动作>",
+            "expression": "<表情>",
+            "position": "<左/中/右>"
+          }
+        ],
+        "dialogue": {
+          "speaker": "<角色名>",
+          "text": "<≤ 15 字>",
+          "emotion": "<语气>",
+          "subtext": "<潜台词>"
+        },
+        "atmosphere": "<本格氛围>",
+        "sfx": "<音效配方>",
+        "bgm_change": false,
+        "continuity_flags": [
+          "<角色>: <服装/发型描述>",
+          "<道具>: <位置/状态>"
+        ],
+        "jimeng_prompt": "<完整即梦 prompt：视觉风格关键词，景别+运镜+角度，场景描述，(@角色_ref.png) 角色描述，氛围，同一角色服装/发型不变，9:16 竖屏，cinematic。（排除项）严禁参考图出现在画面中...>"
+      }
+    ]
+  },
+  "part_b": {
+    "video_id": "SD-XXX-EPxx-B",
+    "label": "下",
+    "time_range": "00:15-00:30",
+    "duration_seconds": 15,
+    "atmosphere": {},
+    "bgm": {},
+    "storyboard_9grid": []
+  }
+}

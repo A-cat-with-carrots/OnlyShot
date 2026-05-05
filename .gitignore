@@ -1,0 +1,30 @@
+# Generated project outputs (users' actual short drama projects)
+projects/
+short-drama-projects/
+SD-*/
+
+# Eval workspace
+ai-short-drama-workspace/
+iteration-*/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Env
+.env
+.env.local
+*.api_key
+api_keys.json
