@@ -1,0 +1,60 @@
+{
+  "project_id": "SD-XXX",
+  "project_name": "<>",
+  "skill_version": "v0.1.2",
+  "version": "v1.0",
+  "created_at": "YYYY-MM-DD",
+  "last_modified": "YYYY-MM-DD",
+  "phase": "Phase1_创作",
+  "stage_progress": {
+    "0_市场": "pending",
+    "1_IP": "pending",
+    "2_故事": "pending",
+    "3_设定": "pending",
+    "3.5_ref图": "pending",
+    "5_批判": "pending",
+    "Phase2": "not_started"
+  },
+  "params": {
+    "duration_per_ep": 180,
+    "total_episodes": 72,
+    "grids_per_ep": 60,
+    "grid_duration": 3,
+    "genre": "<红果纯爽流|精品悬疑流|漫剧奇观流|沙雕轻喜流|年代爽剧流>",
+    "platform": ["红果", "抖音"],
+    "is_paid": false,
+    "audience": {
+      "gender": "女频",
+      "age": "30-55"
+    }
+  },
+  "ref_done": false,
+  "ref_summary": {
+    "角色": [],
+    "场景": [],
+    "道具": []
+  },
+  "episodes_done": [],
+  "episodes_outline_only": [],
+  "episodes_video_done": [],
+  "revision_count": 0,
+  "next_action": "<>",
+  "dependencies": {
+    "02_IP简报.md": ["01_市场情报.md"],
+    "03_完整剧本.md": ["02_IP简报.md"],
+    "04_节奏地图.json": ["02_IP简报.md", "03_完整剧本.md"],
+    "05_角色圣经.md": ["02_IP简报.md"],
+    "06_场景圣经.md": ["02_IP简报.md"],
+    "07_道具圣经.md": ["02_IP简报.md"],
+    "ref图/": ["05_角色圣经.md", "06_场景圣经.md", "07_道具圣经.md"],
+    "分集/": ["03_完整剧本.md", "04_节奏地图.json", "05_角色圣经.md", "ref图/"],
+    "分集/*/视频段/": ["分集/*/即梦批量包.md", "ref图/角色/"],
+    "08_自我批判.md": ["分集/"]
+  },
+  "jimeng_cli": {
+    "installed": false,
+    "logged_in": false,
+    "last_credit_check": null
+  },
+  "archive": []
+}

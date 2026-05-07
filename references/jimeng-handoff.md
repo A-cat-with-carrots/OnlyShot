@@ -1,32 +1,33 @@
-# 即梦 / Seedance 2.0 出片对接规范
+# 即梦 / Seedance 2.0 出片对接规范（v0.1.2）
 
-## 即梦工作流速览（你需要让用户能丝滑跑通）
+> **重要**：v0.1.2 起 skill 通过 **dreamina CLI 自动调用**生 ref 图 + 视频段。
+> CLI 详细用法见 `references/jimeng-cli-guide.md`。本文件聚焦**对接规范**：prompt 怎么写、ref 怎么管、字幕怎么处理、出片质量怎么保证。
+
+---
+
+## 1. 集成路径选择
+
+| 路径 | 适用 | 工具 |
+|------|------|------|
+| **路径 A（推荐）：CLI 自动** | Phase 1 阶段 3.5 + Phase 2 阶段 4.C | `dreamina text2image` / `image2video` |
+| 路径 B：web 端手动 | CLI 装失败 / 需要精细控制单图 | jimeng.jianying.com 网页版 |
+
+skill 默认走路径 A。失败 / 用户偏好时 fallback 到 B。
+
+---
+
+## 2. 即梦 prompt 7 要素
+
+即梦官方推荐：
 
 ```
-1. 即梦 App / Web → 上传角色 ref 图（每个角色 1-3 张）
-2. 上传场景 ref 图（四宫格合成图）
-3. 上传道具 ref 图（三视图合成图）
-4. （可选）上传 9 宫格分镜 ref 图（Seedance 2.0 新能力）
-5. 启用「全能参考」模式
-6. 复制 jimeng_prompt 到输入框，逐段生成
-7. 下载视频段
-8. 剪映拼接成集
+主体 + 细节描述 + 环境/背景 + 运动 + 风格 + 情感 + 镜头语言
 ```
 
-本技能产出的所有 prompt 必须 **复制粘贴即可用**。
+本技能的 `jimeng_prompt`（每个分镜 grid 一个）必须覆盖全 7 要素：
 
-## 即梦 prompt 7 要素
-
-即梦官方推荐 prompt 结构：
-
-```
-主体 + 细节描述 + 环境/背景 + 运动 + 风格 + 情感 + 镜头语言（构图/光影/色调）
-```
-
-本技能的 `jimeng_prompt` 必须覆盖全 7 要素：
-
-| 要素 | 本技能字段来源 |
-|------|---------------|
+| 要素 | 字段来源 |
+|------|---------|
 | 主体 | grid.characters[].name |
 | 细节描述 | grid.characters[].action + .expression |
 | 环境/背景 | grid.scene_description |
@@ -35,119 +36,160 @@
 | 情感 | grid.atmosphere |
 | 镜头语言 | grid.camera.type + .angle |
 
-## 角色一致性的强声明（必带）
+---
 
-即梦在多段视频之间最大的痛点是**角色脸跳**。解决方案：
+## 3. 角色一致性强声明（必带）
+
+即梦最大痛点：**角色脸跳**。解决方案：
 
 1. 每段 prompt 用 `(@角色名_ref.png)` 引用 ref 图
-2. 每段 prompt 末尾加：「同一角色，<角色名>服装/发型/外貌不变，保持人物样貌一致」
-3. 角色服装变了（比如从日常换战衣）→ 重新写「<角色名>本段穿 XXX，与上段服装变化」
+2. CLI 模式下用 `--image=<ref图路径>` 传入参考
+3. prompt 末尾加：「同一角色，<角色名>服装/发型/外貌不变」
+4. 服装变了 → 显式写「<角色名>本段穿 XXX」
 
-不写这个声明，即梦每段会重新理解，每集 18 段会出 18 张不同的脸。
+---
 
-## 场景一致性
+## 4. CLI 模式下的具体调用
 
-同样道理，跨段同一场景要写：
+### Phase 1 阶段 3.5：生角色 ref
 
-- 每段 prompt 引用 `(@场景ID_ref.png)`
-- 加：「场景为<场景名>，光影/陈设与场景参考一致」
+```bash
+dreamina text2image \
+  --prompt="<从 05_角色圣经.md 提取的中文 prompt>" \
+  --ratio=9:16 \
+  --resolution_type=2k \
+  --download_dir=./SD-XXX/ref图/角色/ \
+  --poll=120
+```
 
-## 字幕规范
+或用脚本：`bash scripts/生成参考图.sh <项目目录>`
 
-即梦支持中文字幕，但要：
+### Phase 2 阶段 4.C：生视频段
+
+```bash
+dreamina image2video \
+  --image=./SD-XXX/ref图/角色/<角色>_ref.png \
+  --prompt="<从 即梦批量包.md 提取的段 N 的 prompt>" \
+  --duration=3 \
+  --ratio=9:16 \
+  --video_resolution=720P \
+  --download_dir=./SD-XXX/分集/第01集_<>/视频段/ \
+  --poll=120
+```
+
+或用脚本：`bash scripts/生成分集视频.sh <项目目录> <集编号>`
+
+---
+
+## 5. 字幕规范
+
+即梦支持中文字幕：
 
 - 用 **中文括号** 包：`（"对话内容"）`
 - 字幕前不要加 `字幕：` 前缀
 - 不需要字幕的镜头**不要**写括号
 
-## 视觉风格关键词每段重写
+---
+
+## 6. 视觉风格关键词每段重写
 
 即梦每段独立生成，不重写就跳风格。
 
-把 ip_brief 里的视觉风格关键词（如 `cinematic, vertical 9:16, telephoto compression, high contrast, dramatic lighting`）作为 **每段** prompt 的首句或末句。
+把 `02_IP简报.md` 里的视觉风格关键词作为**每段** prompt 的首句。
 
-## 9:16 竖屏强制
+---
 
-短剧 99% 是竖屏。每段 prompt 必带 `9:16 竖屏` 或 `vertical 9:16 aspect ratio`。
+## 7. 9:16 竖屏强制
+
+短剧 99% 是竖屏。每段 prompt 必带 `9:16 竖屏` 或 `vertical 9:16`。
 
 横屏剧（出海 / 长剧条）才用 16:9。
 
-## Seedance 2.0 新能力：九宫格分镜图 → 视频
+---
 
-Seedance 2.0 支持上传一张已经画好的 9 宫格分镜图 + 一句话提示词，一次生成 15s 视频。
-
-本技能可选地为每集额外产出 `episodes/EPxx/storyboard_brief.md`，提供给走 Seedance 2.0 路径的用户：
-
-```markdown
-# 第 1 集 Seedance 2.0 分镜图模式
-
-## Part A 提示词
-
-> 从镜头 1 开始，按 9 宫格分镜参考图依次生成 15 秒视频。所有角色严格保持参考图一致。
-> 
-> 镜头 1（0-1.67s）：苏曼摸颈上红丝带，握毛笔，眼神冷静；
-> 镜头 2（1.67-3.33s）：苏曼抬眼，对林策说"下个月 8 号，你妈过寿"；
-> ...
-> 镜头 9（13.33-15s）：林策站起来，拉门，门外站着一个陌生女人。
->
-> 风格：高对比电影感，9:16 竖屏，浅景深，暴风雨前的平静
-
-## 上传给 Seedance
-- 9 宫格分镜参考图：SD-001-EP01-A_storyboard.png（用户自己用 AI 画图工具或手画）
-- 角色参考图：苏曼_ref.png、林策_ref.png
-```
-
-注意：分镜参考图本技能不画，用户用其他工具画或手画。
-
-## 排除项（即梦标准 prompt 末尾必加）
-
-短剧用户实测最常出问题的：
-
-- 多宫格分镜出现在最终视频里 → 加 `严禁参考图出现在画面中，单一画幅，无分割线`
-- 出现错误字幕 → 加 `不要任何字幕，不要任何水印`
-- 表情/嘴型不同步 → 加 `表情、嘴型、呼吸、台词严格同步`
-
-完整排除模板：
+## 8. 排除项（每段 prompt 末尾必加）
 
 ```
-（排除项）严禁参考图出现在画面中。每个画面为单一画幅，无任何分割线或多宫格效果。No speech bubbles, no comic panels, no split screen, no manga effects, no text overlays, no watermarks. 表情、嘴型、呼吸、台词严格同步。
+（排除项）严禁参考图出现在画面中。每个画面为单一画幅，无任何分割线或多宫格效果。
+No speech bubbles, no comic panels, no split screen, no manga effects, no text overlays, no watermarks, no logos.
+表情、嘴型、呼吸、台词严格同步。
 ```
 
-每段 prompt 末尾追加上述模板。
+---
 
-## 剪辑指引（写在 jimeng_batch.md 末尾）
+## 9. 流派专用 prompt 关键词
 
-```markdown
-## 剪映拼接规范
-
-1. 新建 9:16 1080×1920 项目
-2. 帧率 30fps
-3. 段间过渡：「叠化 0.3s」（爽点段用「白闪 0.2s」更冲击）
-4. 配音：剪映「字节男声 / 女声」TTS，或真人（推荐找配音工作室）
-5. BGM：用 ip_brief 的 BGM 关键词在剪映音乐库搜
-6. 字幕：所有对白上字幕，字号 60，黑边白字，底部 1/4 处
-7. 输出：MP4 H.264，码率 ≥ 8Mbps，时长 ≤ 60s 走 1080P，> 60s 可走 720P
+### 红果纯爽流 A
+```
+风格：natural lighting, telephoto compression, melodrama, vibrant skin tones,
+镜头：medium close-up, smooth dolly,
+9:16 vertical, cinematic
 ```
 
-## 常见问题应对
+### 精品悬疑流 B
+```
+风格：dark realism, low key lighting, high contrast chiaroscuro, desaturated cool palette,
+镜头：dramatic angle, slow push-in,
+9:16 vertical, cinematic, film grain
+```
 
-| 问题 | 即梦 prompt 修正 |
-|------|------------------|
-| 角色脸总是变 | 加更多 ref 引用 + 强调「与参考图一致」3 次 |
-| 服装跳 | 在 prompt 显式写当前服装颜色 + 款式 |
-| 镜头不动 | 强调运镜词：`镜头慢推 / camera dolly in slowly` |
-| 太静 / 没情绪 | 加情绪词 + 加眼神动作（如「眼神由冷转怒」）|
-| 出广告水印 | prompt 末尾再加一遍 `no watermarks, no logos` |
+### 漫剧奇观流 C（AI 优势）
+```
+风格：comic book art, manhua style, cell-shaded, dynamic action lines, vibrant saturated colors,
+特效：energy aura, glowing eyes, lightning sparks, magic runes, particle effects, lens flare,
+氛围：epic, mythical, supernatural, otherworldly,
+9:16 vertical, cinematic CGI, ultra detailed, ray traced lighting
+```
+
+### 沙雕轻喜流 D
+```
+风格：sitcom lighting, exaggerated expressions, vibrant pastels, animated motion,
+镜头：snappy cuts, comedic angles,
+9:16 vertical
+```
+
+### 年代爽剧流 E
+```
+风格：80s/90s color grading, warm sepia tones, film grain, period-accurate wardrobe,
+道具：cathode-ray TV, old enamel cup, abacus, wood-grain wallpaper,
+9:16 vertical, nostalgic atmosphere
+```
+
+---
+
+## 10. AIGC 标识（红果 2026 强制）
+
+剪辑时**必须**加：
+
+- 片头 5s：「本片由 AI 生成 / AIGC」字幕
+- 片尾 5s：再次出现
+- 不加 → 红果不予上线
+
+---
+
+## 11. 故障排查
+
+| 现象 | CLI 模式应对 |
+|------|-------------|
+| 角色脸总是变 | `--image` 传更高质量 ref + prompt 加「与参考图一致」3 次 |
+| 服装跳 | prompt 显式写当前服装颜色 + 款式 |
+| 镜头不动 | prompt 强调 `镜头慢推 / camera dolly in slowly` |
+| 太静 / 没情绪 | prompt 加情绪词 + 眼神动作 |
+| 出现广告水印 | prompt 末尾再加 `no watermarks, no logos, no ads` |
 | 风格不一致 | 每段都重写完整视觉关键词 |
+| 嘴型不对 | prompt 加 `表情、嘴型、呼吸、台词严格同步` |
+| dreamina 命令失败 | 看 `~/.dreamina_cli/logs/`，跑 `dreamina --version` 检查版本 |
+| 任务一直 querying | `dreamina query_result --submit_id=<ID>` 主动查 |
 
-## 用户跑通流程检查（写在交付时）
+---
 
-确保用户能：
+## 12. 用户跑通流程检查（交付时）
 
-1. ✅ 一眼读懂 ip_brief.md（不需要再问技能"这是啥意思"）
-2. ✅ 拿 character_bible.md 的「即梦角色 ref 生成包」段落直接生 ref 图
-3. ✅ 拿 jimeng_batch.md 直接逐段贴进即梦
-4. ✅ 拿 shot_list.md 给真人配音演员看（可读懂）
-5. ✅ 按 critique.md 的修订建议在原文件上改
+- [ ] dreamina CLI 装好且已登录
+- [ ] 余额够单集 + 至少 2 集 buffer
+- [ ] ref 图全部生好且用户认可
+- [ ] 02_IP简报.md 视觉关键词清晰
+- [ ] 即梦批量包.md 60 段 prompt 都可复制可用
+- [ ] 单集出片测试通过 → 用户在剪映看到初剪片 → 满意
 
-如有任何一步用户需要再问"怎么做"，说明本次交付不合格，回去补文档。
+如有任何一步卡住，回到 SKILL.md 对应阶段重做。

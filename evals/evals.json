@@ -1,105 +1,46 @@
 {
   "skill_name": "ai-short-drama",
+  "skill_version": "v0.1.1",
   "evals": [
     {
       "id": 1,
-      "name": "rough-idea-to-full-ip-package",
+      "name": "奶奶断亲_红果纯爽流",
       "prompt": "我想做一个短剧：奶奶 80 大寿当天宣布断亲，背后是 30 年前家族秘密。给我做完整的 IP 包，要能直接喂给即梦出片。",
-      "expected_output": "完整 5 阶段产出：ip_brief.md（含市场快照 + 7 维度定位）、full_script.md + beat_sheet.json（含每集情绪曲线、伏笔账本）、character_bible.md + scene_bible.md + prop_bible.md（含即梦角色 ref prompt）、至少前 3 集和最后 1 集的 episodes/EPxx/script.md + storyboard.json + shot_list.md + jimeng_batch.md、critique.md（6 维度自评 + 必改清单）。中间各阶段必须停下来跟用户确认。",
+      "non_interactive_overrides": {
+        "流派": "A 红果纯爽流",
+        "集数": "72",
+        "单集时长": "180s",
+        "平台": ["红果", "抖音"],
+        "付费模式": "免费（广告）",
+        "受众": "女频 30-55 岁",
+        "完整出稿集": [1, 8, 27, 50, 72]
+      },
+      "expected_output": "中文命名的项目结构 + 14 文件标准产出（README.md + 项目元数据.json + 01-09 编号文件 + 5 集 × 4 文件分集）+ 反套路检测 + 平台审核扫描 + 流派为红果纯爽流（不是 v0.1.0 默认走的精品悬疑流）+ WebFetch 业界拆解尝试。",
       "files": [],
       "assertions": [
-        {
-          "id": "a1",
-          "text": "在阶段 0 调用 WebSearch 至少 3 次，搜近 30 天市场情报",
-          "kind": "process_check"
-        },
-        {
-          "id": "a2",
-          "text": "ip_brief.md 包含「市场快照」段，且明确标出用户题材在「老年觉醒」赛道的当前市场位置（蓝海/红海/衰退）",
-          "kind": "content_check"
-        },
-        {
-          "id": "a3",
-          "text": "ip_brief.md 给出「核心钩子」一句话 ≤ 25 字，且包含具体动作或反转",
-          "kind": "content_check"
-        },
-        {
-          "id": "a4",
-          "text": "ip_brief.md 给出「重复爽点公式」结构：触发 + 主角动作 + 对方反应",
-          "kind": "content_check"
-        },
-        {
-          "id": "a5",
-          "text": "在阶段 1 完成后停下来让用户确认，未未确认就进入阶段 2 视为失败",
-          "kind": "process_check"
-        },
-        {
-          "id": "a6",
-          "text": "beat_sheet.json 每集都有 cold_open 和 cliffhanger 两种 beat",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a7",
-          "text": "beat_sheet.json 每集平均每 20s 至少 1 个 small_climax 或 twist",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a8",
-          "text": "character_bible.md 每个角色都有：原型 + 反差点 + 视觉母题 + 标志性动作 + 口头禅 + 角色弧光起点/拐点/终点",
-          "kind": "content_check"
-        },
-        {
-          "id": "a9",
-          "text": "character_bible.md 末尾包含「即梦角色参考图生成包」段，每个角色有可直接复制粘贴的中文 ref prompt",
-          "kind": "content_check"
-        },
-        {
-          "id": "a10",
-          "text": "至少前 3 集每集的 storyboard.json 都包含 part_a + part_b，每 part 包含 9 格 storyboard_9grid",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a11",
-          "text": "每个 grid 都包含 jimeng_prompt 字段且非空，prompt 包含 (@角色名_ref.png) 引用、视觉风格关键词、9:16 声明、排除项模板",
-          "kind": "content_check"
-        },
-        {
-          "id": "a12",
-          "text": "每集生成对应 jimeng_batch.md，把 18 段 prompt 顺序排出，段间分隔清晰",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a13",
-          "text": "每集生成对应 shot_list.md 表格，可读懂",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a14",
-          "text": "critique.md 包含 6 维度评分 + 必改清单 + 平台审核风险扫描",
-          "kind": "content_check"
-        },
-        {
-          "id": "a15",
-          "text": "critique.md 至少识别出 1 个「必改」问题，并给出具体修订动作（不是泛泛建议）",
-          "kind": "quality_check"
-        },
-        {
-          "id": "a16",
-          "text": "全部产出文件路径符合 SKILL.md 定义的项目结构（ip_brief.md / full_script.md / beat_sheet.json / *_bible.md / episodes/EPxx/{script.md,storyboard.json,shot_list.md,jimeng_batch.md} / critique.md）",
-          "kind": "structure_check"
-        },
-        {
-          "id": "a17",
-          "text": "未硬编码 /data/dongman/ 这种路径；项目目录在 cwd 下或用户明确指定的位置",
-          "kind": "process_check"
-        },
-        {
-          "id": "a18",
-          "text": "在阶段 1 提示用户「奶奶觉醒」是 2026 当前热门赛道，必须做差异化，并给出 2-3 个差异化角度",
-          "kind": "quality_check"
-        }
+        {"id": "a1", "text": "阶段 0 调用 WebSearch ≥ 3 次 + 尝试 WebFetch ≥ 1 次（业界拆解）", "kind": "process_check"},
+        {"id": "a2", "text": "01_市场情报.md 含市场快照 + 老年觉醒赛道位置 + 数据源引用", "kind": "content_check"},
+        {"id": "a3", "text": "02_IP简报.md 流派字段为「红果纯爽流」（不是 v0.1.0 默认的精品悬疑）", "kind": "content_check"},
+        {"id": "a4", "text": "02_IP简报.md 核心钩子 ≤ 25 字 + 含具体动作", "kind": "content_check"},
+        {"id": "a5", "text": "02_IP简报.md 爽点公式结构：触发 + 主角动作 + 对方反应", "kind": "content_check"},
+        {"id": "a6", "text": "03_完整剧本.md 含 72 集大纲（每集标题/概要/钩子/卡点）", "kind": "structure_check"},
+        {"id": "a7", "text": "04_节奏地图.json 每集都有 cold_open + cliffhanger + 平均每分钟 3-4 个 small_climax/twist/satisfaction", "kind": "structure_check"},
+        {"id": "a8", "text": "05_角色圣经.md 每个角色有 5 特写人格锚定（v0.1.1 新增）", "kind": "content_check"},
+        {"id": "a9", "text": "05_角色圣经.md 末尾含「即梦角色参考图生成包」段", "kind": "content_check"},
+        {"id": "a10", "text": "5 集分集 storyboard_60grid 各包含 60 grid（每 grid 3s × 60 = 180s）", "kind": "structure_check"},
+        {"id": "a11", "text": "每 grid 含非空 jimeng_prompt 字段，含 (@角色名_ref.png) + 风格 + 9:16 + 排除项", "kind": "content_check"},
+        {"id": "a12", "text": "每集生成 即梦批量包.md，60 段 prompt 顺序排出", "kind": "structure_check"},
+        {"id": "a13", "text": "每集生成 镜头清单.md 表格", "kind": "structure_check"},
+        {"id": "a14", "text": "08_自我批判.md 含 6 维度评分 + 反套路检测命中清单 + 平台审核扫描", "kind": "content_check"},
+        {"id": "a15", "text": "08_自我批判.md 至少识别 1 个老套度命中（v0.1.1 新增维度）+ 给出具体修订动作", "kind": "quality_check"},
+        {"id": "a16", "text": "全部产出文件用中文命名（README.md / 项目元数据.json / 01_市场情报.md / 02_IP简报.md / ... / 分集/第XX集_<集名>/{剧本.md, 分镜.json, 镜头清单.md, 即梦批量包.md} / 08_自我批判.md / 09_修订记录.md）", "kind": "structure_check"},
+        {"id": "a17", "text": "项目元数据.json 含 stage_progress + params + dependencies + archive 字段", "kind": "structure_check"},
+        {"id": "a18", "text": "未硬编码 /data/dongman/ 或 windows 绝对路径", "kind": "process_check"},
+        {"id": "a19", "text": "01_市场情报.md 提示老年觉醒是当前热门赛道并给 2-3 个差异化角度", "kind": "quality_check"},
+        {"id": "a20", "text": "每个 .md 文件顶部有 frontmatter（项目/阶段/版本/创建/修订/依赖/被依赖）", "kind": "structure_check"},
+        {"id": "a21", "text": "08_自我批判.md 反套路检测对照黑名单（双胞胎调换/失忆假死/律师老人/30 年家族秘密/拐杖藏证据等）", "kind": "content_check"}
       ]
     }
   ],
-  "notes": "单测试用例（用户要求）。覆盖 5 阶段全流程 + 即梦交付规范 + 反同质化建议 + 文件结构合规。后续可扩展更多用例（建议：付费短剧 60 集、男频赘婿差异化、出海 TikTok 横屏等）。"
+  "notes": "v0.1.1 测试用例改进：流派强制选 A（红果纯爽流），中文文件名验证，5 集完整出稿（不是 v0.1.0 的 4 集），新增 a15/a17/a20/a21 验证 v0.1.1 新功能（5 特写锚定、反套路检测、frontmatter、项目元数据）。"
 }
