@@ -1,19 +1,30 @@
 {
+  "_template_version": "v0.3.0",
+  "_template_note": "工业级 5 步流程 - 36 grid × 4-10s 变奏。每 grid 含 video_mode + first_frame_path + last_frame_path 字段控制视频生成模式。",
   "video_id_prefix": "SD-XXX-EPxx",
   "episode": 0,
   "episode_title": "<集名>",
-  "total_duration_seconds": 180,
+  "total_duration_seconds": 193,
   "fps": 30,
   "resolution": "1080x1920",
   "aspect_ratio": "9:16",
   "platform": "红果+抖音",
+  "grids_per_ep": 36,
+  "grid_duration": "4-10s 变奏",
+  "duration_distribution_default": {
+    "4s": 11,
+    "5s": 14,
+    "6s": 5,
+    "7s": 3,
+    "8-10s": 3
+  },
   "subtitle": true,
   "synopsis": "<本集 100 字概要>",
   "emotion_tone": "<>",
   "visual_style": {
-    "style_name": "<>",
-    "keywords": "<英文关键词串>",
-    "lighting": "<>",
+    "style_name": "<漫剧奇观流 / 红果纯爽流 / 精品悬疑流 / 沙雕轻喜流 / 年代爽剧流>",
+    "keywords": "<英文关键词串，自动 append 视觉指纹>",
+    "lighting": "<冷白 / 暖金 / 神话金光 / 都市霓虹>",
     "color_palette": ["#XXXXXX", "#XXXXXX", "#XXXXXX"]
   },
   "characters_in_episode": ["<>"],
@@ -23,12 +34,22 @@
     "from_previous": "<>",
     "to_next": "<>"
   },
-  "storyboard_60grid": [
+  "v21_seven_rules_applied": {
+    "招1_对抗开场": "grid 1（0-Ns）外力施压",
+    "招2_30s爆破": "grid X（25-32s）视觉/物理冲击",
+    "招3_60s爽点": "grid X（55-65s）小赢",
+    "招4_90s反转": "grid X（85-95s）隐藏信息揭露",
+    "招5_120s爽点": "grid X（115-125s）大赢",
+    "招6_150s钩子": "grid X（145-160s）反派狠话/主角神秘瞳孔",
+    "招7_180s倒计时": "grid 36（终结前 4-9s）红色倒计时数字"
+  },
+  "storyboard_36grid": [
     {
       "grid_number": 1,
       "time_start": 0.0,
-      "time_end": 3.0,
-      "scene_description": "<50 字画面描述>",
+      "time_end": 7.0,
+      "_duration": 7,
+      "scene_description": "<50-100 字画面描述>",
       "camera": {
         "type": "<远景|中景|近景|特写|大特写>",
         "movement": "<固定|推|拉|摇|移|跟|升|降>",
@@ -51,11 +72,29 @@
       "atmosphere": "<本格氛围>",
       "sfx": "<音效配方>",
       "bgm_change": false,
-      "continuity_flags": [
-        "<角色>: <服装/发型描述>",
-        "<道具>: <位置/状态>"
-      ],
-      "jimeng_prompt": "<完整即梦 prompt：视觉风格关键词，景别+运镜+角度，场景描述，(@角色_ref.png) 角色描述，氛围，同一角色服装/发型不变，9:16 竖屏，cinematic。（排除项）严禁参考图出现在画面中...>"
+      "v21_rule_node": "<招1_对抗开场 / 招2_30s爆破 / 招3_60s爽点 / ... / null>",
+
+      "_video_generation_v030": "工业级 4 模选择",
+      "video_mode": "image2video",
+      "_video_mode_options": "image2video（默认基于分镜图）/ frames2video（关键爆点首尾帧）/ multiframe2video（复杂动作 2-20 帧）/ multimodal2video（fallback 多 ref）",
+      "first_frame_path": "分镜图/grid01.png",
+      "last_frame_path": null,
+      "multiframe_paths": [],
+
+      "candidates_count": 2,
+      "_candidates_note": "分镜图候选数。关键 grid 用 4，标准 2，过渡 1",
+
+      "jimeng_prompt": "<完整即梦 prompt（300-500 字）：[时间段镜头分解] 场景描述（参考 @scene_xx_ref.png）+ 角色（参考 @角色_ref.png + @角色_动作_ref.png）含体型/服饰/表情/动作/物理细节 + 关键道具（参考 @prop_xx_ref.png）含位置/材质/反光 + 字幕规格 + 物理细节 + 音效暗示 + 视觉指纹自动 append>"
     }
+  ],
+
+  "_workflow_v030": [
+    "Step 1: 写本 分镜.json（jimeng_prompt + ref 引用 + video_mode）",
+    "Step 2: python scripts/ref完备性检查.py <项目> [集]",
+    "Step 3: python scripts/生成分镜图.py <项目> [集] --candidates=2",
+    "Step 4: 人工选图（grid01_候选3.png → grid01.png）",
+    "Step 5: 关键 grid 生首尾帧（gridXX_首.png + gridXX_尾.png）",
+    "Step 6: python scripts/生成分集视频.py <项目> [集] [N=试水段数]",
+    "Step 7: 剪映拼接 + 配音 + BGM + 字幕"
   ]
 }
