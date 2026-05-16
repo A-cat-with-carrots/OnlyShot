@@ -1,11 +1,11 @@
-# ai-short-drama
+# OnlyShot-ai-short-drama-skill
 
 > **Industrial-grade AI Short Drama Production Skill for Claude Code**
 > 一句"粗糙想法" → 工业级 5 步流程 → 可发红果/抖音的完整短剧（剧本 + 分镜图 + 视频段 + 剪辑包）
 
 [![Skill](https://img.shields.io/badge/Claude-Skill-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.3.0-orange)]()
+[![Version](https://img.shields.io/badge/Version-v0.6.1-orange)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)]()
 
 ---
@@ -71,10 +71,10 @@
 
 ```bash
 # Windows
-git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill "$env:USERPROFILE\.claude\skills\ai-short-drama"
+git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill "$env:USERPROFILE\.claude\skills\ai-short-drama"
 
 # macOS / Linux
-git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill ~/.claude/skills/ai-short-drama
+git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill ~/.claude/skills/ai-short-drama
 ```
 
 ### 方法 2：作为项目本地 skill
@@ -82,7 +82,7 @@ git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill ~/.claude/s
 ```bash
 cd <your-project>
 mkdir -p .claude/skills
-git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill .claude/skills/ai-short-drama
+git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill .claude/skills/ai-short-drama
 ```
 
 ### 依赖
@@ -119,7 +119,7 @@ git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill .claude/ski
 │  阶段 5：批判 refine                              │
 └──────────────────────────────────────────────────┘
                       ↓
-┌─ Phase 1.5：分镜图（v0.3.0 工业级核心）⭐ 新 ──────┐
+┌─ Phase 1.5：分镜图（v0.6.0 工业级核心）⭐ ──────────┐
 │  3A：写该集分镜.json（v0.3.0 字段：video_mode +   │
 │       first_frame_path + last_frame_path）         │
 │  3B：python scripts/ref完备性检查.py              │
@@ -141,7 +141,7 @@ git clone https://github.com/A-cat-with-carrots/ai-short-drama-skill .claude/ski
 ```
 SD-001_<slug>/
 ├── 01_市场情报.md
-├── 02_IP简报.md           ← 含视觉指纹（脚本自动 append 到所有 prompt）
+├── 02_IP简报.md           ← 含视觉指纹（ref 阶段 append；v0.6.0 起分镜图阶段用 --no-fingerprint 关闭）
 ├── 03_完整剧本.md         ← 24 集精华 + v2.1 7 招校准
 ├── 04_节奏地图.json       ← 每集 beats + 7 招节点
 ├── 05_角色圣经.md
@@ -175,16 +175,18 @@ SD-001_<slug>/
 
 ## 即梦 / Seedance 2.0 出片对接
 
-每个分镜的 `jimeng_prompt` 已按 v0.3.0 工业级标准拼好（**镜头分段 + 角色细节 + 道具材质 + 物理动效 + 字幕规格 + 视觉指纹**），开箱即用：
+每个分镜的 `jimeng_prompt` 已按 v0.6.0 工业级 8 段 SOP 拼好（**CHARACTER / BACKGROUND / ACTION / SCENE / CAMERA / LIGHT / TEXT / STYLE**），开箱即用：
 
-- ✅ **300-500 字镜头级 prompt**（含动作物理 / 表情拆帧 / 灯光色温 / 字幕字体）
+- ✅ **prompt 字数自动控制 ≤ 1500 字符**（即梦 5.0 实测上限；ref 段 300-500 字，分镜图段 1200-1500 字）
 - ✅ `(@角色_ref.png)` 引用 + 全角中文 `）` regex 兼容（v0.2.0 修）
-- ✅ **视觉指纹自动 append**（脚本读 02_IP简报.md 抽取，每段强制风格一致）
+- ✅ **视觉指纹分阶段隔离**（ref 阶段 append `neutral/flat`；分镜图阶段用 `--no-fingerprint` 关闭，防 ref 风格词污染 dramatic 光，v0.6.0）
+- ✅ **NOT humans 子句自动加**（每个主角单独 STYLE 段，防即梦 5.0 拟物化 → chibi 人体偏置）
+- ✅ **敏感词预检**（`--check-sensitive` 扫反派词 / 暧昧词 / 中文敏感词，命中 warn，v0.6.0）
 - ✅ **ref 完备性预检**（生视频前自动扫描，缺图就 exit 1）
 - ✅ 9:16 竖屏强制 + 字幕中文括号 + AIGC 标识
 - ✅ **multimodal2video stuck 自动检测**（提交后 check `queue_status=Generating`，否则 fallback list_task 找回 submit_id）
 
-每集额外产 `即梦批量包.md`：36 段 prompt 顺序排好 + ref 引用清单 + 剪映拼接规范 + 故障排查表（13 失败模式）。
+每集额外产 `即梦批量包.md`：36 段 prompt 顺序排好 + ref 引用清单 + 剪映拼接规范 + 故障排查表（v0.6.0 共 17 失败模式：v0.2.0 基础设施 13 + v0.6.0 即梦内容 4）。
 
 ---
 
@@ -196,11 +198,20 @@ SD-001_<slug>/
 ### Step 2：分镜（grid + 动作 + 对白）
 每 grid 含 `_duration` / `video_mode` / `first_frame_path` / `last_frame_path`
 
-### Step 3：分镜图（v0.3.0 工业级核心）
+### Step 3：分镜图（v0.6.0 工业级核心）
 ```bash
-python scripts/生成分镜图.py <项目目录> 01 --candidates=2
-# 36 grid × 2 候选 = 72 张 × 3 积分 = 216 积分 ≈ ¥15
+# 标准跑（推荐）
+python scripts/生成分镜图.py <项目目录> 01 --candidates=1 --no-fingerprint --check-length --auto-pick-first
+# 36 grid × 1 候选 = 36 张 × 3 积分 = 108 积分 ≈ ¥7.7
+
+# 关键爆点单 grid 4 候选
+python scripts/生成分镜图.py <项目目录> 01 13 --candidates=4 --no-fingerprint
 ```
+v0.6.0 必加 flag：
+- `--no-fingerprint`：防 ref 风格词 `neutral/flat/NOT cinematic` 污染分镜图 dramatic 光
+- `--check-length`：跑前 prompt > 1500 字 warn（即梦 5.0 硬上限）
+- `--check-sensitive`：扫反派词 / 暧昧词 / 中文敏感词
+
 人工选图：`mv grid01_候选3.png grid01.png`
 
 ### Step 4：视频段（4 模 auto 选）
@@ -285,7 +296,7 @@ ai-short-drama/
 
 ---
 
-## 默认参数（v0.3.0）
+## 默认参数（v0.6.0）
 
 | 项 | 默认值 | 来源 |
 |----|--------|------|
@@ -297,13 +308,15 @@ ai-short-drama/
 | 视频默认模式 | **image2video**（基于分镜图） | v0.3.0 工业级核心 |
 | 字幕 | **开**（中文括号包 + AIGC 标识）| 红果强制 |
 | ref 库目标 | **80-150 张**（工业级）| 含动作/表情/场景多角度/道具细节 |
-| 单 prompt 字数 | **300-500 字** | 含动作物理 + 表情拆帧 + 灯光 + 字幕规格 |
-| 分镜图候选数 | 关键 grid 4 / 标准 2 / 过渡 1 | v0.3.0 默认 |
-| 流派 | 互动选 | 红果纯爽 / 精品悬疑 / 漫剧奇观 / 沙雕轻喜 / 年代爽剧 |
+| 单 prompt 字数 | **ref 段 300-500 字 / 分镜图段 1200-1500 字** | v0.6.0 区分（即梦硬上限 1500） |
+| 分镜图候选数 | 关键 grid 4 / 标准 1-2（v0.6.0 实测单跑通过率高） | v0.6.0 |
+| 流派 | 互动选 | 红果纯爽 / 精品悬疑 / 漫剧奇观 / 沙雕轻喜 / 年代爽剧 / **F 抽象拟人流（v0.4.0 新）** |
 
 ---
 
-## 13 失败模式（已沉淀解法）
+## 17 失败模式（已沉淀解法）
+
+**v0.2.0 基础设施层（13 模式）**：
 
 | # | 问题 | 解法 |
 |---|------|------|
@@ -313,25 +326,52 @@ ai-short-drama/
 | 4 | ref 引入新元素无新 ref | `ref完备性检查.py` 强制预检 |
 | 5 | regex 漏全角中文 `）` | 加 `）` 到 stop 字符 |
 | 6 | Python stdout UTF-8 截断 | `sys.stdout.reconfigure(encoding='utf-8')` |
-| 7 | Win Store python3 stub | `python || python3` + verify |
+| 7 | Win Store python3 stub | `python \|\| python3` + verify |
 | 8 | --poll exit code 异常 | 不依赖 exit code，看文件落盘 |
-| 9 | 风格漂移 | 视觉指纹自动 append |
-| 10 | 多视图重复 | "4 distinct angles, no duplicate views" |
+| 9 | 风格漂移（ref 阶段） | 视觉指纹自动 append（仅 ref 阶段，分镜图阶段用 `--no-fingerprint`） |
+| 10 | 多视图重复（ref 阶段） | "4 distinct angles, no duplicate views"（仅 ref 阶段适用） |
 | 11 | 文字 vs 乱码混淆 | 文字 OK，乱码才是问题，去无意义数字 |
 | 12 | 角色名误删 | 工牌 / 字幕 / 对白点名 |
 | 13 | 网页端 multimodal 不可见 | 在「视频生成 → 全能参考 → 历史」tab |
 
-详见 [`references/troubleshooting.md`](references/troubleshooting.md)。
+**v0.6.0 即梦内容层（4 模式）** — 详见 [`references/jimeng-failure-modes.md`](references/jimeng-failure-modes.md)：
+
+| # | 问题 | 解法 |
+|---|------|------|
+| 14 | prompt > 1500 字 → `ret=1046 InvalidNode` | 严守 ≤ 1500，理想 1200-1400 |
+| 15 | 反派词 / 暧昧词 → `generation failed`（内容审核） | sinister → moody / blush on cheeks → rose tint |
+| 16 | 视觉指纹 `neutral/flat` 污染分镜图 dramatic 光 | 分镜图阶段 `--no-fingerprint` |
+| 17 | ref 库工艺偏置（古建筑必出 chibi 人体） | 前期 IP 设计阶段避坑：选玻璃塔 / 简单几何，避复杂古建筑 |
+
+详见 [`references/troubleshooting.md`](references/troubleshooting.md)（v0.2.0 13 模式）+ [`references/jimeng-failure-modes.md`](references/jimeng-failure-modes.md)（v0.6.0 4 模式 + 反派词替换表 + 4 grid case）。
 
 ---
 
 ## 版本历史
 
-### v0.3.0（2026-05-08）⭐ 当前
+### v0.6.1（2026-05-16）⭐ 当前
+- AI 短剧专家 subagent 审报告修复 16 项（信度 disclaimer + 主流程引用 + 古建筑铁律）
+- ref 70%/30% 权重等无证据断言加 disclaimer
+- NOT humans 子句从「必加」改「建议加（边际 ~30%）」
+- 反派词替换表加触发语境列（情感 vs 物理描述）
+- 3 个 storyboard 文档合并整理（避免新手混乱）
+- visual-consistency-sop.md 大幅瘦身归档
+
+### v0.6.0（2026-05-16）
+- ⭐ 分镜图 8 段 prompt SOP（`storyboard-frame-industrial.md`）：CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE
+- ⭐ 即梦 5.0 故障排查 + 敏感词清单（`jimeng-failure-modes.md`）：3 类 fail 区分 + prompt 1500 字硬上限 + 反派词/暧昧词替换表
+- ⭐ ref 库工艺偏置铁律：现代摩天楼易拟物 / 古建筑必出 chibi 人体
+- ⭐ NOT humans 子句（每个主角单独 STYLE 段）
+- `scripts/生成分镜图.py` 加 3 个预检 flag：`--no-fingerprint` / `--check-length` / `--check-sensitive`
+- max_workers 8 → 4 + timeout 加倍 + 2 次重试（即梦限流防）
+- F 抽象拟人流加古建筑避坑硬约束（`genre-flavors.md`）
+- 来源：SD-002《城市恋综》EP01 36 grid × 3 轮（v2.5/v2.6/v2.7）实战反推
+
+### v0.3.0（2026-05-08）
 - 加 Phase 1.5 分镜图层（修改成本 3 积分 vs 视频 55 积分 = 18 倍便宜）
 - 4 模视频生成（image2video / frames2video / multiframe2video / multimodal2video auto 选）
 - 关键 grid 首尾帧锁定（爆点/反派/心声）
-- ref 5-8 最优（不塞 9 → 注意力分散）
+- ref 5-8 最优（仅 multimodal2video 适用，分镜图 1-2 ref；v0.6.0 澄清）
 - @ 指令显式职责语法
 - 新增 `生成分镜图.py` + `storyboard-frames-craft.md`
 
@@ -340,9 +380,13 @@ ai-short-drama/
 - 36 grid × 4-10s 变奏（替代 60 × 3s 死板）
 - 红果必爆 7 招校准（对抗式开场 / 30s 爆破 / 60s 爽点 / 90s 反转 / 120s 爽点 / 150s 钩子 / 180s 倒计时）
 - 工业级 ref 库 80-150 张（动作 / 表情 / 多角度 / 道具细节）
-- 单 prompt 300-500 字（动作物理 / 表情拆帧 / 灯光 / 字幕规格）
+- 单 prompt 300-500 字（ref 段；v0.6.0 分镜图段升至 1200-1500）
 - 13 失败模式 + 自动 ref 预检 + multimodal stuck 自动检测
 - 新增 `troubleshooting.md` + `v21-97-percent-rules.md` + 3 个 Python 脚本
+
+### v0.4.0（2026-05-16）
+- 加 F 抽象拟人流（`genre-flavors.md`）：5 流派 → 6 流派
+- 来源：2026 年 3-5 月《Fruit Love Island》等水果剧爆款公式拆解
 
 ### v0.1.x（2026-04）
 - 初版 5 阶段创作流程（市场情报 → IP 简报 → 故事架构 → 设定圣经 → 批判）
@@ -416,11 +460,15 @@ PR 欢迎。重点方向：
 - 工业级 5 步流程（剧本 → 分镜 → **分镜图** → 视频 → 剪辑）
 - 4 模视频生成自动选（image2video / frames2video / multiframe2video / multimodal2video）
 - 红果必爆 7 招校准（v2.1）
-- 13 失败模式沉淀（troubleshooting.md）
+- 17 失败模式沉淀（v0.2.0 基础设施 13 + v0.6.0 即梦内容 4）
 - 工业级 ref 库标准（80-150 张）
-- 单 prompt 300-500 字镜头级
+- 分镜图 8 段 prompt SOP（v0.6.0）：CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE
+- ref 6 段 identity block（v0.6.0）：IDENTITY/BODY/FACE/ATTIRE/LAYOUT/STYLE
+- 即梦 5.0 故障排查 + 敏感词清单（v0.6.0）：3 类 fail 区分 + 1500 字硬上限 + 反派词替换表
+- ref 库工艺偏置铁律（v0.6.0）：现代摩天楼易拟物 / 古建筑必出 chibi 人体
 - bash → Python subprocess（避中文 quoting 任务静默丢弃）
 - 36 grid × 4-10s 变奏
+- F 抽象拟人流（v0.4.0）：6 流派定调
 
 ---
 
