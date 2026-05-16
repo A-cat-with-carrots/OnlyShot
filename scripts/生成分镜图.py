@@ -66,23 +66,32 @@ def parse_grid_range(s: str | None, total: int) -> list[int]:
     return [int(s)]
 
 
-def submit_one(grid_num: int, candidate_idx: int, prompt: str, fp: str) -> tuple[int, int, str | None, str | None]:
-    """提交 text2image。返回 (grid_num, candidate_idx, submit_id, image_url)"""
+def submit_one(grid_num: int, candidate_idx: int, prompt: str, fp: str, retries: int = 2) -> tuple[int, int, str | None, str | None]:
+    """提交 text2image。返回 (grid_num, candidate_idx, submit_id, image_url)。retries=2 时总共最多 3 次。"""
     full_prompt = f'{prompt}, {fp}' if fp else prompt
     cmd = ['dreamina', 'text2image',
            '--prompt', full_prompt,
            '--ratio', '9:16',
            '--model_version', '5.0',
            '--resolution_type', '2k',
-           '--poll', '180']
-    try:
-        ret = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=300)
-    except subprocess.TimeoutExpired:
-        return grid_num, candidate_idx, None, None
-    out = (ret.stdout or '') + (ret.stderr or '')
-    sid_m = re.search(r'"submit_id"\s*:\s*"([^"]+)"', out)
-    img_m = re.search(r'"image_url"\s*:\s*"([^"]+)"', out)
-    return grid_num, candidate_idx, sid_m.group(1) if sid_m else None, img_m.group(1) if img_m else None
+           '--poll', '300']
+    for attempt in range(retries + 1):
+        try:
+            ret = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=420)
+        except subprocess.TimeoutExpired:
+            if attempt < retries:
+                continue
+            return grid_num, candidate_idx, None, None
+        out = (ret.stdout or '') + (ret.stderr or '')
+        sid_m = re.search(r'"submit_id"\s*:\s*"([^"]+)"', out)
+        img_m = re.search(r'"image_url"\s*:\s*"([^"]+)"', out)
+        if img_m:
+            return grid_num, candidate_idx, sid_m.group(1) if sid_m else None, img_m.group(1)
+        if attempt < retries:
+            import time; time.sleep(3)
+            continue
+        return grid_num, candidate_idx, sid_m.group(1) if sid_m else None, None
+    return grid_num, candidate_idx, None, None
 
 
 def download(url: str, target: Path) -> int:
@@ -101,6 +110,7 @@ def main():
     parser.add_argument('grid_range', nargs='?', default=None, help='grid 范围: 单 grid (5) / 范围 (1-10) / 全跑省略')
     parser.add_argument('--candidates', type=int, default=2, help='每 grid 候选数（1-4）')
     parser.add_argument('--auto-pick-first', action='store_true', help='自动用候选 1 作为最终图（无候选时用）')
+    parser.add_argument('--no-fingerprint', action='store_true', help='不 append 02_IP简报.md 的视觉指纹（分镜图工艺隔离时用，避免 ref 词污染 dramatic 光）')
     args = parser.parse_args()
 
     project_dir = Path(args.project_dir).resolve()
@@ -129,7 +139,9 @@ def main():
         print(f'❌ grid 范围 {args.grid_range} 无匹配')
         sys.exit(1)
 
-    fp = get_visual_fingerprint(project_dir / '02_IP简报.md')
+    fp = '' if args.no_fingerprint else get_visual_fingerprint(project_dir / '02_IP简报.md')
+    if args.no_fingerprint:
+        print('  ⚠ --no-fingerprint：跳过视觉指纹 append（分镜图工艺隔离）')
     frame_dir = ep_dir / '分镜图'
     frame_dir.mkdir(parents=True, exist_ok=True)
 
@@ -154,7 +166,7 @@ def main():
         print('全部已存在，无需生成')
     else:
         print(f'📤 并发提交 {len(todo)} 张...\n')
-        with ThreadPoolExecutor(max_workers=8) as ex:
+        with ThreadPoolExecutor(max_workers=4) as ex:
             futures = {ex.submit(submit_one, n, ci, p, fp): (n, ci) for n, ci, p in todo}
             for fut in as_completed(futures):
                 n, ci = futures[fut]
