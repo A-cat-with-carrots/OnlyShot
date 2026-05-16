@@ -1,8 +1,45 @@
-# dreamina CLI 集成详细指南（v0.2.0）
+# dreamina CLI 集成详细指南（v0.6.0）
 
 字节官方提供的面向 AGENT 的 CLI 工具包。本技能在 Phase 1 阶段 3.5（ref 图）+ Phase 2 阶段 4.C（视频出片）调用。
 
 来源：字节官方《即梦 CLI 体验指南》v1.4.3（2026-05-07）
+
+## v0.6.0 新增（必读）
+
+> 来源：SD-002 EP01 实战 36 grid × 3 轮跑沉淀。
+
+### `scripts/生成分镜图.py` 3 个新 flag
+
+| flag | 作用 | 用法 |
+|------|------|------|
+| `--no-fingerprint` | 不 append `02_IP简报.md` 的视觉指纹（防 ref 风格词 `neutral/flat/NOT cinematic` 污染分镜图 dramatic 光） | 跑分镜图必加 |
+| `--check-length` | 跑前预检 prompt 字数 > 1500（即梦 5.0 实测上限） | 长 prompt 项目必加 |
+| `--check-sensitive` | 跑前扫反派词 / 暧昧词 / 中文敏感词（命中 warn 不阻断） | 反派戏 grid 必加 |
+
+### 内置 default 调整
+
+- `max_workers`：8 → **4**（降并发防即梦限流，长 prompt 8 并发必死）
+- `timeout`：300 → **420s** + 加 2 次重试（即梦偶发慢响应）
+- `--poll`：180 → **300s**
+
+### 推荐跑法
+
+```bash
+# 标准跑（多 grid 批量）
+python scripts/生成分镜图.py <项目> <ep> --candidates=1 --no-fingerprint --check-length --auto-pick-first
+
+# 单 grid 4 候选（关键爆点 grid）
+python scripts/生成分镜图.py <项目> <ep> <grid#> --candidates=4 --no-fingerprint
+
+# 失败重跑（长 prompt 必单跑）
+python scripts/生成分镜图.py <项目> <ep> <grid#> --candidates=1 --no-fingerprint
+```
+
+详见 `references/jimeng-failure-modes.md`（3 类 fail 区分 / 敏感词清单 / 字数上限）。
+
+---
+
+# 原 v0.2.0 内容（已沿用）
 
 ---
 

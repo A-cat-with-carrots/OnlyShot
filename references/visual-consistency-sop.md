@@ -1,12 +1,28 @@
-# 视觉一致性 SOP（v0.1.4 新增 — 实战教训沉淀）
+# 视觉一致性 SOP（v0.1.4 → v0.6.0 已大幅瘦身）
 
-本文件汇总 SD-001 项目实战中遇到的视觉问题 + 解法，作为后续所有项目的强制守则。
+> **v0.6.0 update**：本文件 §1（视觉指纹强制 append）/ §2（4 视图组合声明）/ §3（文字 vs 乱码） / §4（人工把关）**已被 v0.6.0 三大新文档全面覆盖+部分推翻**。新手不再读本文件，直接看：
+>
+> - **分镜图工艺** → `references/storyboard-frame-industrial.md`
+> - **ref 工艺** → `references/ref-prompt-industrial.md`
+> - **即梦故障/敏感词** → `references/jimeng-failure-modes.md`
+>
+> 本文件下文 §1-§5 **保留为历史归档**（标 ARCHIVED）。新项目按 v0.6.0 三大文档跑。
 
 ---
 
-## 1. 视觉指纹（VISUAL FINGERPRINT）
+## ARCHIVED §1-§5（v0.1.4 老 SOP，与 v0.6.0 冲突部分）
 
-### 强制规则
+### v0.6.0 主要推翻的 3 条
+
+1. ❌ **§1「scripts 自动 append 视觉指纹」**：v0.6.0 实测 ref 风格词 `neutral / flat / NOT cinematic` 会**直接禁掉分镜图 dramatic 光**。修复：`生成分镜图.py --no-fingerprint`
+2. ❌ **§2「4 distinct angles」**：只在 ref 阶段适用，不要写进分镜图 prompt（分镜图是单图 9:16 不是 4 视图）
+3. ⚠️ **§4 人工把关仍成立**，但「改 prompt 后必删旧图重生」要手动（脚本 auto-skip 已存在文件）
+
+---
+
+## 1. 视觉指纹（VISUAL FINGERPRINT）— ARCHIVED v0.1.4 老规则
+
+### 强制规则（v0.6.0 update：仅在 ref 阶段成立，分镜图阶段用 --no-fingerprint）
 
 **每个 IP 在 `02_IP简报.md` 顶部必须有「视觉指纹」段**，含：
 

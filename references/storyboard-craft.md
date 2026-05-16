@@ -1,4 +1,16 @@
-# 阶段 4B：分镜 + 镜头清单细则（v0.2.0）
+# 阶段 4B：分镜 + 镜头清单细则（v0.2.0，**v0.6.0 已局部废弃**）
+
+> ⚠️ **v0.6.0 update**：本文件「prompt 模板示例 / jimeng_prompt 拼接规则」**已被 `references/storyboard-frame-industrial.md` 8 段 SOP 取代**。新手只看本文件的 **36 grid 时长变奏表 + 14 字段定义**，prompt 工艺一律按 storyboard-frame-industrial.md 写。
+>
+> 已废弃部分（继续保留但不再是 source of truth）：
+> - prompt 模板示例（已被 8 段标签模板替代）
+> - jimeng_prompt 拼接规则（已被 1 主角 ref + N silhouette + NOT humans 子句替代）
+>
+> 仍有效部分：
+> - 36 grid × 4-10s 变奏（节奏映射）
+> - 时长分布表（4s × 11 + 5s × 14 + ...）
+> - 派生工具用法（`scripts/派生分集文件.py`）
+> - ref 完备性检查（`scripts/ref完备性检查.py`）
 
 > **v0.2.0 升级（2026-05）**：
 > - **每 grid 时长**：3s → **4-10s 变奏**（multimodal2video 上限 4s 起，变奏防节奏机械感）

@@ -116,6 +116,9 @@ ref 不纯（chibi 人体），分镜图加 NOT humans 也救不回来。
 └──────────────────────────────────────────────────┘
                       ↓
 ┌─ Phase 1.5：分镜图（v0.3.0 工业级核心）⭐ 新增 ─────┐
+│  ⚠️ 写 prompt 前必读：                            │
+│   - storyboard-frame-industrial.md §5（8 段模板）  │
+│   - jimeng-failure-modes.md §1+§2（字数+敏感词）   │
 │  对每一集独立运行：                               │
 │  3A：写该集分镜.json（v0.3.0 字段：video_mode +    │
 │       first_frame_path + last_frame_path）         │
@@ -166,7 +169,7 @@ ref 不纯（chibi 人体），分镜图加 NOT humans 也救不回来。
 
 ---
 
-## 默认参数（v0.2.0）
+## 默认参数（v0.6.0）
 
 | 项 | 默认值 | 来源 |
 |----|--------|------|
@@ -400,7 +403,7 @@ Phase 1 已完成 ✅。准备进 Phase 2 按集出片。
 
 ## 阶段 4.B：写该集分镜 + 剧本 + 即梦批量包
 
-如果该集 `分集/第XX集_<集名>/` 还不存在 → 按 `references/scripting-craft.md` + `references/storyboard-craft.md` 写：
+如果该集 `分集/第XX集_<集名>/` 还不存在 → 按 `references/scripting-craft.md`（剧本）+ `references/storyboard-frame-industrial.md`（分镜图 8 段 prompt + ref 工艺偏置）+ `references/jimeng-failure-modes.md`（敏感词 / 字数上限 / 并发限流）写：
 
 - `剧本.md`
 - `分镜.json`（60 grid）
@@ -464,22 +467,34 @@ skill 不调剪映，但给完整指引：
 
 ---
 
-## ⭐ v0.1.4 视觉一致性 SOP（必读）
+## ⭐ v0.6.0 视觉一致性 SOP（必读）
 
-实战教训：风格漂移 / 名字乱码 / 多视图重复 = 重生成本飙升。
+> **v0.6.0 update**：原 v0.1.4 8 条 SOP 已被 SD-002 三轮实战推翻 / 拆分到 3 个工业级文档。新手只看这一节 + 3 个 references 即可。
 
-**强制规则**：
+**分镜图 prompt 工艺** → `references/storyboard-frame-industrial.md`
+- 8 段模板（CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE）
+- 1 主角 ref + N silhouette 多角色 SOP
+- 戏剧光词库 + 红果级首帧 10 条 checklist
+- ref 库工艺偏置（现代摩天楼易拟物 / 古建筑必出 chibi 人体）
 
-1. **每个 IP 在 02_IP简报.md 顶部必须有「视觉指纹」段**（manhua style / NOT realistic / 比例 / 色板）
-2. **scripts 自动从 02_IP简报.md 提取视觉指纹追加到每个 prompt**
-3. **多视图组合 prompt 必须显式声明 "4 distinct different angles, no duplicate views"**
-4. **角色名 / 文字可以写进 prompt（合理时）**，例「陈笑工位牌写"陈笑"」很合理。但 prompt 必须**明确指定**：「name plate with clear legible Chinese characters「陈笑」, no garbled text」。AI 还是可能错 → 人工把关 → 不行重生。
-5. **必要文字（UI / 黑板 / 招牌）保留**，prompt 加 `clear legible text` 防乱码
-6. **不必要的测量数字（30cm / 2 米）从 prompt 删除**（无信息价值还易乱码）
-7. **每次生图后用户人工把关**（风格 / 脸畸形 / 文字乱码 / 多视图重复）= 不可省环节
-8. **改 prompt 后必须删旧图重生**（脚本"已存在跳过"会用旧图）
+**ref 图 prompt 工艺** → `references/ref-prompt-industrial.md`
+- 6 段 identity block（IDENTITY/BODY/FACE/ATTIRE/LAYOUT/STYLE）
+- 视觉指纹放 prompt 开头前 200 token
+- 拟物化 IP「IS the object NOT humanoid」必加
+- 4 视图标签水印陷阱
 
-详见 `references/visual-consistency-sop.md`。
+**即梦 5.0 故障排查 + 敏感词** → `references/jimeng-failure-modes.md`
+- 3 类 fail 区分：InvalidNode / generation failed / 无 image_url
+- prompt 字数硬上限：1500 字符（v0.6.0 实测条件下）
+- 反派词 / 暧昧词 / 中文敏感词替换表
+- 长 prompt 必单跑（不要并发 4+）
+
+**v0.1.4 老 SOP 被推翻的 3 条**（必须知道）：
+1. ❌ 老 SOP「scripts 自动 append 视觉指纹」 → v0.6.0 用 `--no-fingerprint` 关闭（ref 风格词会污染分镜图 dramatic 光）
+2. ❌ 老 SOP「4 distinct angles」 → 只在 ref 阶段适用，不要写进分镜图 prompt
+3. ❌ 老 SOP「改 prompt 后必删旧图重生」 → 仍然成立，但脚本会自动 skip 已存在的；改 prompt 后必须手动删旧文件再跑
+
+详见 `references/visual-consistency-sop.md`（v0.1.4 老文档已大幅瘦身，只保留成本 / 流程部分）。
 
 ---
 

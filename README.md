@@ -255,17 +255,20 @@ ai-short-drama/
 │   ├── story-architecture.md          # 阶段 2 深度
 │   ├── character-design.md            # 阶段 3 深度
 │   ├── scripting-craft.md             # 阶段 4A 深度
-│   ├── storyboard-craft.md            # 36 grid × 4-10s 变奏（v0.2.0）
-│   ├── storyboard-frames-craft.md     # 分镜图工艺 + 4 模选择（v0.3.0 ⭐）
-│   ├── jimeng-cli-guide.md            # dreamina CLI 集成指南
+│   ├── storyboard-craft.md            # 36 grid × 4-10s 变奏（v0.2.0，v0.6.0 prompt 模板部分废弃）
+│   ├── storyboard-frames-craft.md     # 分镜图工艺 + 4 模选择（v0.3.0）
+│   ├── storyboard-frame-industrial.md # ⭐ v0.6.0 分镜图 8 段 SOP（CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE）
+│   ├── ref-prompt-industrial.md       # ⭐ v0.6.0 ref 工艺 6 段 identity block
+│   ├── jimeng-failure-modes.md        # ⭐ v0.6.0 即梦 5.0 故障排查 + 敏感词清单
+│   ├── jimeng-cli-guide.md            # dreamina CLI 集成指南（v0.6.0 加 --no-fingerprint flag 说明）
 │   ├── jimeng-handoff.md              # 即梦 / Seedance 2.0 对接
-│   ├── visual-consistency-sop.md      # 视觉一致性方法论
+│   ├── visual-consistency-sop.md      # 视觉一致性方法论（v0.6.0 已大幅瘦身归档）
 │   ├── critic-checklist.md            # 阶段 5 深度
 │   ├── cliche-detector.md             # 反套路检测器
-│   ├── genre-flavors.md               # 5 流派定调
+│   ├── genre-flavors.md               # 6 流派定调（v0.4.0 加 F 抽象拟人流，v0.6.0 加古建筑铁律）
 │   ├── red-fruit-data.md              # 红果实战数据
-│   ├── v21-97-percent-rules.md        # 红果必爆 7 招 + 24 集校准 ⭐
-│   ├── troubleshooting.md             # 13 失败模式 + 解法 ⭐
+│   ├── v21-97-percent-rules.md        # 红果必爆 7 招 + 24 集校准
+│   ├── troubleshooting.md             # 13 失败模式 + 解法
 │   └── schemas.md                     # 所有 JSON 结构
 ├── scripts/
 │   ├── 生成分镜图.py                  # Phase 1.5 - 每 grid 1-4 张候选 ⭐ v0.3.0

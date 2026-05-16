@@ -1,4 +1,7 @@
-# 分镜图工业级 Prompt 工艺（v0.2.0）
+# 分镜图工业级 Prompt 工艺（v0.3.0）
+
+> ⚠️ **测试条件 disclaimer**：本文档所有「字数上限」「ref 权重比例」「一致性百分比」均来自 SD-002《城市恋综》EP01 v2.5/v2.6/v2.7 三轮 36 grid 实测（dreamina CLI + 即梦 5.0，2026-05-16，中英 ~7:3 混合 prompt，N=36+）。**不是即梦官方公布的物理常数**。换模型 / 换 prompt 语言比例 / 换时间窗，数字会变。
+
 
 > 本文件回答一个核心问题：**ref 图、分镜图、视频段三层不同工艺，哪些参数必须分离、哪些不能复用？**
 >
@@ -21,10 +24,11 @@
 - 1995 字 ❌ fail
 - **结论**：严守 **< 1500 字**，理想 1200-1400 字。
 
-### 铁律 2：STYLE 段必含 `NOT a human wearing X clothing NOT a human with X headpiece` 防人形先验
+### 铁律 2：STYLE 段建议加 `NOT a human wearing X` 子句（**边际作用 ~30%，无法消除 ref 偏置**）
 - grid21 v1（无此子句）→ CP 变「人头戴塔头盔」（一致性 1.5/5）
 - grid21 v2（加 NOT humans 子句）→ 真拟物化（一致性 5/5）
-- **结论**：每个 ref 主角必须**单独**写 NOT 子句（不能写 "characters bodies ARE X and Y NOT humans" 复数共用，模型不认）
+- **但**：单次实测 N=1，加了 NOT 子句的杭州/北京/武汉/广州 grid 仍 30-50% 出现 chibi 人体（详 §11 ref 偏置硬伤）
+- **结论**：每个 ref 主角**建议**单独写 NOT 子句（不能复数共用「characters ARE X and Y」模型不认）；但 ref 本身偏 chibi 时无法靠 NOT 救回，需重做 ref。
 
 ### 铁律 3：每个 grid 单跑 100% 通过率，4+ 张并发 90% fail
 - v2.6 36 张并发（每张 ~325 字）→ 100% 通过（短 prompt）
@@ -119,8 +123,8 @@ on lower sphere, two amethyst eyes, Funko Pop chibi.
 ```
 
 **问题分解**：
-1. `(@上海_ref.png)` 是图像锚点（视觉权重 ≈70%）
-2. 紧跟 `3 stacked spheres ... purple silk qipao ... two amethyst eyes` 是**重生成指令**（文本权重 ≈30%）
+1. `(@上海_ref.png)` 是图像锚点（**经验观察：图像 ref 在身份一致性上显著压倒文字描述**，具体权重不可外部测量。即梦闭源，70%/30% 是 SD-002 实战反推的直觉数字，**不是物理常数**）
+2. 紧跟 `3 stacked spheres ... purple silk qipao ... two amethyst eyes` 是**重生成指令**
 3. 即梦/Seedance 把两者**叠加渲染**：因为文本 prompt 描述的体型「不完整 / 顺序变了 / 颜色描述简化了」
    → 模型会**按文本重新生成一个新的体型**，再用 ref 图「修色」
    → 结果出来的是一个**像 ref 但不是 ref** 的新角色
@@ -218,7 +222,7 @@ All background figures out-of-focus f/1.8 shallow DoF, dark teal tint, low contr
 
 ```
 ✅ pink rim light from behind (romantic)
-✅ teal rim light from upper-right (sinister / villain)
+✅ teal rim light from upper-right (villain mood 用，注意 `sinister` 是审核敏感词只用于本文档说明，prompt 中改写为 `moody/cool` 见 jimeng-failure-modes.md §2.1)
 ✅ warm gold rim light separating subject from dark background
 ✅ blue electric rim halo (tech mascot 深圳)
 ```
@@ -405,7 +409,7 @@ EP01 36 grid 推荐分布：
 
 ## 9. ref 引用顺序最佳实践
 
-即梦/Seedance 对多 ref 的处理：**第 1 张权重 70% / 第 2 张 20% / 第 3+ 张 10%**
+即梦/Seedance 对多 ref 的经验观察：**第 1 张权重最强 / 第 2 张减弱 / 第 3+ 张急剧衰减**（具体百分比不可测，**SD-002 反推的直觉数字而非物理常数**）
 
 ```
 ✅ 关键 grid：把视觉主角放第 1 个 ref 引用位
@@ -413,6 +417,14 @@ EP01 36 grid 推荐分布：
 ✅ 反派镜：反派放第 1（最强一致性）
 ❌ 不要按"剧情先后"排序 ref，要按"视觉重要性"排序
 ```
+
+### 「ref 5-8 最优」适用范围澄清
+
+- **text2image（分镜图）**：1 主角 ref 最佳，最多 2（CP 镜）
+- **image2video（视频段，分镜图首帧 + 动作 prompt）**：1-2 ref（首帧已含构图）
+- **multimodal2video（多模态 fallback）**：5-8 ref（多帧合成时才需要 5-8）
+
+「5-8 最优」只对 multimodal2video 适用，分镜图 / image2video 都是 1-2 ref 上限。多文档说「ref 5-8 最优」未区分上下文，**v0.6.0 update**：明确区分。
 
 ---
 

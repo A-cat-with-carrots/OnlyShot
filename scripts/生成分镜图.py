@@ -1,5 +1,5 @@
 """
-生成分镜图.py（v0.3.0）
+生成分镜图.py（v0.6.0）
 每 grid 用 dreamina text2image 出 1-4 张候选关键帧。
 分镜图 = 视频首帧（image2video / frames2video 输入）。
 
@@ -16,6 +16,11 @@
     python 生成分镜图.py D:/projects/SD-001 01 1         # 单 grid
     python 生成分镜图.py D:/projects/SD-001 01 1 --candidates=4   # 1 grid 4 张候选
 
+v0.6.0 新增预检 flag（SD-002 实战教训）：
+  --no-fingerprint   不 append 视觉指纹（防 ref 风格词污染分镜图 dramatic 光）
+  --check-length     跑前预检 prompt 字数（即梦 5.0 上限 1500，超就 warn / skip）
+  --check-sensitive  跑前扫敏感词（反派词 / 暧昧词命中 warn 不阻断）
+
 输出结构：
   分集/第XX集_*/
     分镜图/
@@ -24,11 +29,31 @@
       ...
       grid01.png  ← 用户选定（默认 grid01_候选1.png）
 
-依赖：dreamina CLI（已登录）
+依赖：dreamina CLI（已登录），Python 3.10+（PEP 604 类型注解）
 """
-import subprocess, sys, re, json, urllib.request, argparse
+import subprocess, sys, re, json, urllib.request, argparse, time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+# v0.6.0 敏感词清单（来自 references/jimeng-failure-modes.md §2）
+# 反派词（角色/情感语境必触发，物理语境偶发）
+SENSITIVE_VILLAIN = [
+    'sinister', 'menacingly', 'dark intent', 'possessive', 'dark cyan', 'dark teal',
+    'dark particles', 'dark shadows engulf', 'cold smirk', 'harsh shadow',
+    'dark wood', 'sinister spotlight'
+]
+# 暧昧词（面部特写易触发即梦面部审核）
+SENSITIVE_INTIMATE = [
+    'blush on cheeks', 'pink blush', 'extreme close-up upper portion',
+    'extreme close-up face filling frame', 'internal warm glow',
+    'subtle internal glow', 'pulsing softly', 'blooms with'
+]
+# 中文敏感词（subtitle / 弹幕段）
+SENSITIVE_CN = ['反派', '不死心']
+
+# 字数上限（即梦 5.0 实测，dreamina CLI 2026-05）
+PROMPT_LEN_LIMIT = 1500
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -111,6 +136,8 @@ def main():
     parser.add_argument('--candidates', type=int, default=2, help='每 grid 候选数（1-4）')
     parser.add_argument('--auto-pick-first', action='store_true', help='自动用候选 1 作为最终图（无候选时用）')
     parser.add_argument('--no-fingerprint', action='store_true', help='不 append 02_IP简报.md 的视觉指纹（分镜图工艺隔离时用，避免 ref 词污染 dramatic 光）')
+    parser.add_argument('--check-length', action='store_true', help='v0.6.0 预检：prompt 字数 > 1500 时 warn（即梦 5.0 实测上限）')
+    parser.add_argument('--check-sensitive', action='store_true', help='v0.6.0 预检：扫反派词 / 暧昧词 / 中文敏感词，命中 warn（不阻断）')
     args = parser.parse_args()
 
     project_dir = Path(args.project_dir).resolve()
@@ -151,6 +178,27 @@ def main():
     print(f'  候选数: {candidates} 张/grid')
     print(f'  总: {len(grids_todo) * candidates} 张 × 3 积分 = {len(grids_todo) * candidates * 3} 积分（≈ ¥{len(grids_todo) * candidates * 3 / 14:.1f}）')
     print('')
+
+    # v0.6.0 预检：字数 + 敏感词
+    if args.check_length or args.check_sensitive:
+        print('\n=== v0.6.0 预检 ===')
+        for g in grids_todo:
+            n = g['grid_number']
+            p = g['jimeng_prompt']
+            full = f'{p}, {fp}' if fp else p
+            if args.check_length and len(full) > PROMPT_LEN_LIMIT:
+                print(f'  ⚠ grid {n}: 字数 {len(full)} > {PROMPT_LEN_LIMIT}（即梦 5.0 实测上限，可能 InvalidNode）')
+            if args.check_sensitive:
+                hits_v = [w for w in SENSITIVE_VILLAIN if w in p.lower()]
+                hits_i = [w for w in SENSITIVE_INTIMATE if w in p.lower()]
+                hits_c = [w for w in SENSITIVE_CN if w in p]
+                if hits_v or hits_i or hits_c:
+                    print(f'  ⚠ grid {n}: 敏感词命中', end=' ')
+                    if hits_v: print(f'反派={hits_v}', end=' ')
+                    if hits_i: print(f'暧昧={hits_i}', end=' ')
+                    if hits_c: print(f'中文={hits_c}', end=' ')
+                    print('(详 references/jimeng-failure-modes.md §2)')
+        print('=== 预检完成（不阻断，仅 warn）===\n')
 
     # 跳过已有
     todo = []
