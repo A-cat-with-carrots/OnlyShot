@@ -223,6 +223,15 @@ python scripts/生成分集视频.py <项目目录> 01      # 全跑
 ### Step 5：剪辑
 剪映 9:16 / 1080×1920 / 30fps + 配音（豆包 TTS）+ BGM（Suno）+ SFX（剪映音效库）+ AIGC 标识
 
+BGM / 音效也可以按成片自动生成（可选，Sonilo）：初剪拼好导出后
+
+```bash
+python scripts/生成配乐.py 分集/第01集_<集名>/初剪.mp4               # 配乐：跟剪辑点和情绪走，时长自动对齐
+python scripts/生成配乐.py 分集/第01集_<集名>/视频段/段13.mp4 --sfx   # 音效：关键段按画面生成
+```
+
+音乐自带授权、可商用（以条款为准）；音效为免版税素材。4 个示例 + 题材 prompt 模板速查表见 [`references/sonilo-audio-guide.md`](references/sonilo-audio-guide.md)。
+
 ---
 
 ## 4 模视频生成选择矩阵
@@ -280,12 +289,14 @@ ai-short-drama/
 │   ├── red-fruit-data.md              # 红果实战数据
 │   ├── v21-97-percent-rules.md        # 红果必爆 7 招 + 24 集校准
 │   ├── troubleshooting.md             # 13 失败模式 + 解法
+│   ├── sonilo-audio-guide.md          # Sonilo AI 配乐/音效指南（阶段 4.D 可选，4 示例 + 题材模板）
 │   └── schemas.md                     # 所有 JSON 结构
 ├── scripts/
 │   ├── 生成分镜图.py                  # Phase 1.5 - 每 grid 1-4 张候选 ⭐ v0.3.0
 │   ├── 生成分集视频.py                # Phase 2 - 4 模 auto 选 ⭐ v0.3.0
 │   ├── ref完备性检查.py               # 生视频前预检 ⭐ v0.2.0
 │   ├── 派生分集文件.py                # 从分镜.json 派生即梦批量包/镜头清单
+│   ├── 生成配乐.py                    # 阶段 4.D 可选 - Sonilo 配乐/音效（按成片生成）
 │   ├── extract_prompts.py             # 视觉指纹抽取
 │   ├── setup-jimeng.sh                # dreamina CLI 安装
 │   ├── 生成分集视频.sh                # 旧 bash（deprecated）
