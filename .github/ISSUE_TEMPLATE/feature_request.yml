@@ -1,0 +1,23 @@
+name: 功能建议 / Feature request
+description: 想要的新能力、流程改进、题材或平台支持
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解决什么问题 / Problem
+      description: 在哪一步、为什么现在不好用
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议的做法 / Proposal
+  - type: checkboxes
+    id: third_party
+    attributes:
+      label: 第三方服务 / Third-party service
+      description: 如果建议接入付费 API 或外部平台，请先看 CONTRIBUTING.md 里的接入规矩
+      options:
+        - label: 这个建议涉及第三方服务（付费 API、外部平台）
+        - label: 我和这个第三方服务有关联（例如在那家公司工作）

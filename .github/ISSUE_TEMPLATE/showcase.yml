@@ -1,0 +1,30 @@
+name: 作品分享 / Showcase
+description: 用 OnlyShot 做出来的短剧、分镜或片段
+labels: ["showcase"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: 作品名 / Title
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: 链接 / Link
+      description: 平台链接或网盘链接（可选）
+  - type: textarea
+    id: stages
+    attributes:
+      label: 用到了哪些阶段，踩过什么坑 / What you used and learned
+      description: 题材、流派、集数、出片模型、最难的一步，越具体越能帮到后来的人
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 授权 / Consent
+      options:
+        - label: 同意在 README 或宣传中展示这个作品（会注明作者）
+        - label: 作品里没有侵犯他人肖像、版权或商标的内容
+          required: true

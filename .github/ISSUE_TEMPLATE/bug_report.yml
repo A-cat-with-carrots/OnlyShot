@@ -1,0 +1,52 @@
+name: 问题报告 / Bug report
+description: 跑不通、报错、出图出片失败
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 卡在哪个阶段 / Stage
+      options:
+        - 阶段 0 市场情报
+        - 阶段 1 IP 简报
+        - 阶段 2 故事架构 / 节奏地图
+        - 阶段 3 设定圣经
+        - 阶段 3.5 ref 图
+        - 阶段 5 批判
+        - Phase 1.5 分镜图
+        - Phase 2 出片（视频段）
+        - 剪辑 / 配乐
+        - 安装 / 其他
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+      description: 你做了什么、期望什么、实际看到什么
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错或日志 / Logs
+      description: 终端输出、`dreamina` 返回的 JSON（去掉 token、key 等敏感信息）
+      render: shell
+  - type: input
+    id: os
+    attributes:
+      label: 系统 / OS
+      placeholder: Windows 11 / macOS 15 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: 版本 / Versions
+      description: Claude Code 版本、`dreamina version`、`python --version`（脚本需要 Python 3.10+）
+      placeholder: Claude Code 2.x / dreamina 1dcd265 / Python 3.12
+  - type: input
+    id: skill
+    attributes:
+      label: OnlyShot 版本 / Skill version
+      description: SKILL.md 开头的版本号，或 `git log -1 --oneline`
