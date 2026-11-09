@@ -1,0 +1,20 @@
+{
+  "video_id_prefix": "FIXTURE-EP01",
+  "episode": 1,
+  "episode_title": "自检",
+  "total_duration_seconds": 9,
+  "storyboard_36grid": [
+    {
+      "grid_number": 1,
+      "_duration": 5,
+      "dialogue": {"speaker": "甲", "text": "第一句对白"},
+      "jimeng_prompt": "[0-5s 中景] 现代办公室，甲（参考 @甲_ref.png）抬头看向镜头，冷白顶光，9:16 竖屏"
+    },
+    {
+      "grid_number": 2,
+      "_duration": 4,
+      "dialogue": {"speaker": "乙（心声）", "text": "第二句心声"},
+      "jimeng_prompt": "[0-4s 近景] 乙的侧脸，窗外夜色，暖色台灯，9:16 竖屏"
+    }
+  ]
+}

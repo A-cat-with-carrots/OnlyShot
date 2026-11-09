@@ -1,12 +1,23 @@
-# OnlyShot-ai-short-drama-skill
+# OnlyShot：AI 短剧工业流水线（Claude Code Skill）
 
-> **Industrial-grade AI Short Drama Production Skill for Claude Code**
-> 一句"粗糙想法" → 工业级 5 步流程 → 可发红果/抖音的完整短剧（剧本 + 分镜图 + 视频段 + 剪辑包）
+> 一句「粗糙想法」→ 市场情报 → 剧本 → 分镜 → 分镜图 → 视频段 → 自动初剪 → 上线前检查，出一集能发红果、抖音的竖屏短剧。
+> Industrial-grade AI short drama pipeline for Claude Code · [English](README_EN.md)
 
 [![Skill](https://img.shields.io/badge/Claude-Skill-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.6.1-orange)]()
+[![Version](https://img.shields.io/badge/Version-v0.7.0-orange)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)]()
+
+---
+
+## 30 秒看懂
+
+- **是什么**：一个 Claude Code skill（技能名 `ai-short-drama`）。你说一句题材，它带你走完短剧的创作和出片，每一步都落成文件。
+- **和别的短剧 skill 不一样**：不止写剧本。接即梦 dreamina 真出图出片；先出分镜图再出视频（改一张图 3 积分，改一段视频 55 积分）；沉淀了 17 种即梦失败模式；最后自动拼成带字幕和 AI 标识的初剪。
+- **怎么装**：`git clone https://github.com/A-cat-with-carrots/OnlyShot ~/.claude/skills/ai-short-drama`，重开 Claude Code。
+- **一集大概花多少**：按 2026-05 实测单价，一集 193 秒约 2,230 积分（分镜图 36 张约 108 + 视频约 2,120），约合 ¥160。跑之前加 `--dry-run` 先看这一集的预估，不花钱。
+- **没有即梦也能用**：剧本、设定、分镜和每段 prompt 都不需要 dreamina，见下面的「轻量模式」。
+- **上线要合规**：2026-09-01 起 AI 微短剧每集要有 AI 标识，`拼接初剪.py` 自动加；上线前清单见 [`references/compliance-2026.md`](references/compliance-2026.md)。
 
 ---
 
@@ -37,6 +48,8 @@
   - `multiframe2video`（复杂动作 5%）：2-20 关键帧一镜到底
   - `multimodal2video`（fallback 5%）：9 image + 3 video + 3 audio
 - dreamina CLI 集成（multimodal2video 全能参考 / Seedance 2.0 Fast VIP / 9:16 / 720p）
+- **自动初剪**（v0.7.0）：按分镜顺序拼成一集，对白字幕、每集 AI 标识自动加
+- **上线前检查**（v0.7.0）：AI 标识、备案类别、原创、授权（按 2026 年的新规）
 
 不是"AI 编剧助手"。是 **爆款短剧产品经理 + 编剧 + 分镜师 + 制片 + 出片工程师** 的合体角色。
 
@@ -44,7 +57,7 @@
 
 ## 为什么做它
 
-短剧赛道月活 1.7 亿、人均 101 分钟/天（红果 2026 数据）。AI 短剧的真正瓶颈不在剧本，在**出片质量**。
+微短剧用户约 8.5 亿（广电总局，2026-09）；DataEye 预估 2026 年微短剧加 AI 剧漫剧市场超过 1210 亿元，其中 AI 剧和漫剧超过 400 亿（2026-08）。AI 短剧的真正瓶颈不在剧本，在**出片质量**和**上线合规**。
 
 市面上的 AI 短剧 skill 普遍存在：
 
@@ -61,41 +74,60 @@
 | bash 调 dreamina 中文 quoting 假死 | **Python subprocess args list**（避免 server 静默丢弃任务）|
 | 角色档案空壳 | 弧光（起/拐/终）+ 视觉母题 + 反差点强制 |
 | 一次出稿走人 | 阶段 5 **6 维度自我批判** + 必改清单 |
+| 剪辑和 AI 标识全靠手工 | **`拼接初剪.py` 一键初剪**：对白字幕、每集 AI 角标、元数据隐式标识自动加（v0.7.0） |
 | 路径写死 | 自动检测 cwd，可移植 |
 
 ---
 
 ## 安装
 
-### 方法 1：克隆到 Claude Code 全局 skills 目录
+### 方法 1：装到 Claude Code 全局 skills 目录
 
 ```bash
-# Windows
-git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill "$env:USERPROFILE\.claude\skills\ai-short-drama"
+# macOS / Linux / Windows Git Bash
+git clone https://github.com/A-cat-with-carrots/OnlyShot ~/.claude/skills/ai-short-drama
 
-# macOS / Linux
-git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill ~/.claude/skills/ai-short-drama
+# Windows PowerShell
+git clone https://github.com/A-cat-with-carrots/OnlyShot "$env:USERPROFILE\.claude\skills\ai-short-drama"
 ```
 
-### 方法 2：作为项目本地 skill
+### 方法 2：只在某个项目里用
 
 ```bash
 cd <your-project>
 mkdir -p .claude/skills
-git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill .claude/skills/ai-short-drama
+git clone https://github.com/A-cat-with-carrots/OnlyShot .claude/skills/ai-short-drama
 ```
+
+重启 Claude Code（或新开会话），技能自动加载。升级：在技能目录里 `git pull`。
 
 ### 依赖
 
-- **Claude Code**（Windows / macOS / Linux）
-- **dreamina CLI**（即梦官方 AGENT 工具，用于 ref 图 + 视频生成）：
-  ```bash
-  curl -fsSL https://jimeng.jianying.com/cli | bash
-  dreamina login
-  ```
-  Windows 用户在 Git Bash 跑（不是 PowerShell）
+| 依赖 | 用在哪 | 什么时候要 |
+|---|---|---|
+| Claude Code | 全部 | 必须 |
+| Python 3.10+ | `scripts/` 下的脚本 | 出图出片、初剪 |
+| dreamina CLI（即梦官方） | ref 图、分镜图、视频段 | 出图出片；轻量模式不要 |
+| ffmpeg（带 libass，常见完整版都带） | `拼接初剪.py` | 初剪 |
 
-重启 Claude Code（或新开会话），技能自动加载。
+dreamina 安装和登录（2026-04 起是 OAuth 设备登录：终端打印一个地址和验证码，在浏览器里授权）：
+
+```bash
+curl -fsSL https://jimeng.jianying.com/cli | bash    # Windows 在 Git Bash 里跑
+dreamina login
+dreamina user_credit                                   # 看得到余额就是登录好了
+```
+
+认准官方地址 `jimeng.jianying.com/cli`。详见 [`references/jimeng-cli-guide.md`](references/jimeng-cli-guide.md)。
+
+### 轻量模式：不装 dreamina 也能用
+
+只想要剧本和分镜，或者习惯在即梦网页端出片：
+
+1. 照常跟技能走完 Phase 1（市场情报、IP 简报、剧本、节奏地图、设定圣经、批判），这些只要 Claude Code；
+2. 每集写好 `分镜.json` 后，跑 `python scripts/派生分集文件.py 分集/第01集_<集名>/分镜.json`，得到 `即梦批量包.md`（每段一条现成的 prompt）；
+3. 把 prompt 粘到即梦网页端（或别的视频模型）出片，下载的片段按 `视频段/段01.mp4、段02.mp4……` 放好；
+4. 装了 ffmpeg 就跑 `python scripts/拼接初剪.py <项目目录> 01 --allow-missing`，拼成带字幕和 AI 标识的初剪。
 
 ---
 
@@ -130,9 +162,12 @@ git clone https://github.com/A-cat-with-carrots/OnlyShot-ai-short-drama-skill .c
 └──────────────────────────────────────────────────┘
                       ↓
 ┌─ Phase 2：出片（成本高，按集解锁）────────────────┐
-│  4A：python scripts/生成分集视频.py              │
-│       auto 模式按文件存在自动选 4 模               │
-│  4B：用户在剪映拼接 + 配音 + BGM + 字幕            │
+│  4C：python scripts/生成分集视频.py --dry-run     │
+│       先看预估积分，再正式跑（auto 选 4 模）       │
+│  4D：python scripts/拼接初剪.py → 初剪.mp4        │
+│       字幕 + AI 角标 + 元数据标识自动加            │
+│       配乐（可选 Sonilo）→ 剪映精修               │
+│  4E：上线前检查（compliance-2026.md）             │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -165,9 +200,11 @@ SD-001_<slug>/
     │   │   ├── grid05_首.png     ← 关键 grid 首帧
     │   │   ├── grid05_尾.png     ← 关键 grid 尾帧
     │   │   └── ...
-    │   └── 视频段/       ← Phase 2 产物
-    │       ├── 段01.mp4
-    │       └── ...
+    │   ├── 视频段/       ← Phase 2 产物
+    │   │   ├── 段01.mp4
+    │   │   └── ...
+    │   ├── 初剪.mp4      ← v0.7.0 自动初剪（字幕 + AI 标识）
+    │   └── 10_上线前检查.md
     └── ... (EP02-EP24)
 ```
 
@@ -183,7 +220,7 @@ SD-001_<slug>/
 - ✅ **NOT humans 子句自动加**（每个主角单独 STYLE 段，防即梦 5.0 拟物化 → chibi 人体偏置）
 - ✅ **敏感词预检**（`--check-sensitive` 扫反派词 / 暧昧词 / 中文敏感词，命中 warn，v0.6.0）
 - ✅ **ref 完备性预检**（生视频前自动扫描，缺图就 exit 1）
-- ✅ 9:16 竖屏强制 + 字幕中文括号 + AIGC 标识
+- ✅ 9:16 竖屏 + 对白字幕 + 每集 AI 标识（`拼接初剪.py` 自动加，2026-09-01 起的要求）
 - ✅ **multimodal2video stuck 自动检测**（提交后 check `queue_status=Generating`，否则 fallback list_task 找回 submit_id）
 
 每集额外产 `即梦批量包.md`：36 段 prompt 顺序排好 + ref 引用清单 + 剪映拼接规范 + 故障排查表（v0.6.0 共 17 失败模式：v0.2.0 基础设施 13 + v0.6.0 即梦内容 4）。
@@ -216,14 +253,20 @@ v0.6.0 必加 flag：
 
 ### Step 4：视频段（4 模 auto 选）
 ```bash
-python scripts/生成分集视频.py <项目目录> 01 5    # B 试水前 5 段
-python scripts/生成分集视频.py <项目目录> 01      # 全跑
+python scripts/生成分集视频.py <项目目录> 01 --dry-run   # 先看每段走哪种模式、缺哪些 ref、预估积分（不花钱）
+python scripts/生成分集视频.py <项目目录> 01 5           # 试水前 5 段
+python scripts/生成分集视频.py <项目目录> 01             # 全跑
+python scripts/生成分集视频.py <项目目录> 01 --model-version seedance2.0fast   # 没开即梦会员时
 ```
 
 ### Step 5：剪辑
-剪映 9:16 / 1080×1920 / 30fps + 配音（豆包 TTS）+ BGM（Suno）+ SFX（剪映音效库）+ AIGC 标识
+先一键拼初剪（v0.7.0）：
 
-BGM / 音效也可以按成片自动生成（可选，Sonilo）：初剪拼好导出后
+```bash
+python scripts/拼接初剪.py <项目目录> 01   # → 初剪.mp4（1080×1920，对白字幕，全程「AI生成」角标，元数据 AIGC）+ 初剪.srt
+```
+
+再按需配音（豆包 TTS 等）、配乐，进剪映精修（9:16 / 1080×1920 / 30fps）。配乐也可以按成片自动生成（可选，Sonilo）：
 
 ```bash
 python scripts/生成配乐.py 分集/第01集_<集名>/初剪.mp4               # 配乐：跟剪辑点和情绪走，时长自动对齐
@@ -231,6 +274,8 @@ python scripts/生成配乐.py 分集/第01集_<集名>/视频段/段13.mp4 --sf
 ```
 
 Sonilo 是第三方付费服务（由 Sonilo 团队贡献）：成片会上传到 Sonilo 处理；免费档仅限个人非商用，发平台变现要 Pro 及以上，以 Sonilo 条款为准。4 个示例 + 题材 prompt 模板速查表见 [`references/sonilo-audio-guide.md`](references/sonilo-audio-guide.md)。
+
+上线前按 [`references/compliance-2026.md`](references/compliance-2026.md) 过一遍：每集 AI 标识、备案类别、原创、授权。
 
 ---
 
@@ -266,8 +311,11 @@ Sonilo 是第三方付费服务（由 Sonilo 团队贡献）：成片会上传�
 ```
 ai-short-drama/
 ├── SKILL.md                           # 主入口（5 步流程编排）
-├── README.md
+├── README.md / README_EN.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
 ├── LICENSE
+├── .github/                           # issue 模板 + Actions 离线检查
 ├── references/
 │   ├── market-pulse.md                # 阶段 0 深度
 │   ├── ip-strategy.md                 # 阶段 1 深度
@@ -280,20 +328,22 @@ ai-short-drama/
 │   ├── storyboard-frame-industrial.md # ⭐ v0.6.0 分镜图 8 段 SOP（CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE）
 │   ├── ref-prompt-industrial.md       # ⭐ v0.6.0 ref 工艺 6 段 identity block
 │   ├── jimeng-failure-modes.md        # ⭐ v0.6.0 即梦 5.0 故障排查 + 敏感词清单
-│   ├── jimeng-cli-guide.md            # dreamina CLI 集成指南（v0.6.0 加 --no-fingerprint flag 说明）
+│   ├── jimeng-cli-guide.md            # dreamina CLI 集成指南（v0.7.0 加模型现状：CLI 限制 / Seedance 2.5 / 可灵 4.0）
 │   ├── jimeng-handoff.md              # 即梦 / Seedance 2.0 对接
 │   ├── visual-consistency-sop.md      # 视觉一致性方法论（v0.6.0 已大幅瘦身归档）
 │   ├── critic-checklist.md            # 阶段 5 深度
 │   ├── cliche-detector.md             # 反套路检测器
-│   ├── genre-flavors.md               # 6 流派定调（v0.4.0 加 F 抽象拟人流，v0.6.0 加古建筑铁律）
+│   ├── genre-flavors.md               # 7 流派定调（v0.4.0 加 F 抽象拟人流，v0.7.0 加 G AI 仿真人流）
 │   ├── red-fruit-data.md              # 红果实战数据
 │   ├── v21-97-percent-rules.md        # 红果必爆 7 招 + 24 集校准
 │   ├── troubleshooting.md             # 13 失败模式 + 解法
 │   ├── sonilo-audio-guide.md          # Sonilo AI 配乐/音效指南（阶段 4.D 可选，4 示例 + 题材模板）
+│   ├── compliance-2026.md             # ⭐ v0.7.0 上线前合规（AI 标识 / 备案分类 / 原创 / 肖像声音）
 │   └── schemas.md                     # 所有 JSON 结构
 ├── scripts/
-│   ├── 生成分镜图.py                  # Phase 1.5 - 每 grid 1-4 张候选 ⭐ v0.3.0
-│   ├── 生成分集视频.py                # Phase 2 - 4 模 auto 选 ⭐ v0.3.0
+│   ├── 生成分镜图.py                  # Phase 1.5 - 每 grid 1-4 张候选（v0.7.0 加 --dry-run）
+│   ├── 生成分集视频.py                # Phase 2 - 4 模 auto 选（v0.7.0 加 --dry-run / --model-version）
+│   ├── 拼接初剪.py                    # ⭐ v0.7.0 阶段 4.D - 视频段 → 初剪（字幕 + AI 标识）
 │   ├── ref完备性检查.py               # 生视频前预检 ⭐ v0.2.0
 │   ├── 派生分集文件.py                # 从分镜.json 派生即梦批量包/镜头清单
 │   ├── 生成配乐.py                    # 阶段 4.D 可选 - Sonilo 配乐/音效（按成片生成）
@@ -301,13 +351,13 @@ ai-short-drama/
 │   ├── setup-jimeng.sh                # dreamina CLI 安装
 │   ├── 生成分集视频.sh                # 旧 bash（deprecated）
 │   └── 生成参考图.sh                  # ref 图批量生成
-├── assets/templates/                  # 12 份模板（项目元数据 + 分镜.json + 9 圣经/剧本）
+├── assets/templates/                  # 模板（项目元数据、分镜.json、圣经、剧本、上线前检查）
 └── evals/evals.json                   # 测试用例 + 18 条断言
 ```
 
 ---
 
-## 默认参数（v0.6.0）
+## 默认参数（v0.7.0）
 
 | 项 | 默认值 | 来源 |
 |----|--------|------|
@@ -317,11 +367,12 @@ ai-short-drama/
 | 时长变奏分布 | 4×11 + 5×14 + 6×5 + 7×3 + 8-10×3 | v2.1 红果必爆铁律 |
 | 视频比例 | **9:16 竖屏** | 红果/抖音/快手统一 |
 | 视频默认模式 | **image2video**（基于分镜图） | v0.3.0 工业级核心 |
-| 字幕 | **开**（中文括号包 + AIGC 标识）| 红果强制 |
+| 字幕 / AI 标识 | **开**：对白字幕 + 每集全程 AI 角标 + 元数据隐式标识 | 《微短剧发展管理办法》2026-09-01 起 |
 | ref 库目标 | **80-150 张**（工业级）| 含动作/表情/场景多角度/道具细节 |
 | 单 prompt 字数 | **ref 段 300-500 字 / 分镜图段 1200-1500 字** | v0.6.0 区分（即梦硬上限 1500） |
 | 分镜图候选数 | 关键 grid 4 / 标准 1-2（v0.6.0 实测单跑通过率高） | v0.6.0 |
-| 流派 | 互动选 | 红果纯爽 / 精品悬疑 / 漫剧奇观 / 沙雕轻喜 / 年代爽剧 / **F 抽象拟人流（v0.4.0 新）** |
+| 出片前 | `--dry-run` 先看预估积分 | v0.7.0 |
+| 流派 | 互动选 | 红果纯爽 / 精品悬疑 / 漫剧奇观 / 沙雕轻喜 / 年代爽剧 / 抽象拟人 / **AI 仿真人（v0.7.0 新）** |
 
 ---
 
@@ -358,52 +409,16 @@ ai-short-drama/
 
 ---
 
-## 版本历史
+## 版本
 
-### v0.6.1（2026-05-16）⭐ 当前
-- AI 短剧专家 subagent 审报告修复 16 项（信度 disclaimer + 主流程引用 + 古建筑铁律）
-- ref 70%/30% 权重等无证据断言加 disclaimer
-- NOT humans 子句从「必加」改「建议加（边际 ~30%）」
-- 反派词替换表加触发语境列（情感 vs 物理描述）
-- 3 个 storyboard 文档合并整理（避免新手混乱）
-- visual-consistency-sop.md 大幅瘦身归档
+当前 **v0.7.0**（2026-11-10），完整记录见 [`CHANGELOG.md`](CHANGELOG.md)。v0.7.0 主要变化：
 
-### v0.6.0（2026-05-16）
-- ⭐ 分镜图 8 段 prompt SOP（`storyboard-frame-industrial.md`）：CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE
-- ⭐ 即梦 5.0 故障排查 + 敏感词清单（`jimeng-failure-modes.md`）：3 类 fail 区分 + prompt 1500 字硬上限 + 反派词/暧昧词替换表
-- ⭐ ref 库工艺偏置铁律：现代摩天楼易拟物 / 古建筑必出 chibi 人体
-- ⭐ NOT humans 子句（每个主角单独 STYLE 段）
-- `scripts/生成分镜图.py` 加 3 个预检 flag：`--no-fingerprint` / `--check-length` / `--check-sensitive`
-- max_workers 8 → 4 + timeout 加倍 + 2 次重试（即梦限流防）
-- F 抽象拟人流加古建筑避坑硬约束（`genre-flavors.md`）
-- 来源：SD-002《城市恋综》EP01 36 grid × 3 轮（v2.5/v2.6/v2.7）实战反推
-
-### v0.3.0（2026-05-08）
-- 加 Phase 1.5 分镜图层（修改成本 3 积分 vs 视频 55 积分 = 18 倍便宜）
-- 4 模视频生成（image2video / frames2video / multiframe2video / multimodal2video auto 选）
-- 关键 grid 首尾帧锁定（爆点/反派/心声）
-- ref 5-8 最优（仅 multimodal2video 适用，分镜图 1-2 ref；v0.6.0 澄清）
-- @ 指令显式职责语法
-- 新增 `生成分镜图.py` + `storyboard-frames-craft.md`
-
-### v0.2.0（2026-05-08）
-- bash → Python subprocess（避中文 prompt quoting 任务静默丢弃）
-- 36 grid × 4-10s 变奏（替代 60 × 3s 死板）
-- 红果必爆 7 招校准（对抗式开场 / 30s 爆破 / 60s 爽点 / 90s 反转 / 120s 爽点 / 150s 钩子 / 180s 倒计时）
-- 工业级 ref 库 80-150 张（动作 / 表情 / 多角度 / 道具细节）
-- 单 prompt 300-500 字（ref 段；v0.6.0 分镜图段升至 1200-1500）
-- 13 失败模式 + 自动 ref 预检 + multimodal stuck 自动检测
-- 新增 `troubleshooting.md` + `v21-97-percent-rules.md` + 3 个 Python 脚本
-
-### v0.4.0（2026-05-16）
-- 加 F 抽象拟人流（`genre-flavors.md`）：5 流派 → 6 流派
-- 来源：2026 年 3-5 月《Fruit Love Island》等水果剧爆款公式拆解
-
-### v0.1.x（2026-04）
-- 初版 5 阶段创作流程（市场情报 → IP 简报 → 故事架构 → 设定圣经 → 批判）
-- 60 grid × 3s 默认
-- 5 流派定调（红果纯爽 / 精品悬疑 / 漫剧奇观 / 沙雕轻喜 / 年代爽剧）
-- 反套路检测 + 自我批判
+- `scripts/拼接初剪.py`：视频段一键拼成初剪，字幕、AI 角标、元数据标识自动加
+- 上线前合规：`references/compliance-2026.md` + 阶段 4.E + `10_上线前检查.md`（按 2026 年 6 月、7 月、11 月的新规整理）
+- 出片脚本 `--dry-run` 先看预估积分；视频脚本 `--model-version`，没开即梦会员也能跑
+- 第 7 流派 G AI 仿真人流；dreamina 指南加模型现状（Seedance 2.5、可灵 4.0、CLI 限制）
+- 合并 Sonilo 配乐 / 音效（#5，第三方付费服务，可选）
+- 英文 README、issue 模板、CONTRIBUTING、GitHub Actions 离线检查
 
 ---
 
@@ -419,30 +434,25 @@ ai-short-drama/
 
 ---
 
-## 当前已知热点参考（2026 年 5 月）
+## 当前已知热点参考（2026-11 更新）
 
-> 技能每次开始都会联网更新，下表仅供静态参考。
+> 技能每次开始都会联网更新（阶段 0），下表只作静态参考，引用前看日期。
 
-### 女频（占红果 81.7%）
+**真人剧题材**（DataEye《2026 上半年真人微短剧数据报告》，按播放增量，2026-08-26）：
 
-| 题材 | 状态 |
-|------|------|
-| 老年女性觉醒/复仇 | 🔥 上升 |
-| 重生复仇 + 商战 | 🔥 稳定爆款 |
-| 神医/相师/命格 | 🔥 上升 |
-| 离婚追妻火葬场 | 🟡 平稳 |
-| 霸总虐恋（纯虐） | 🔻 衰退 |
-| 穿越宫斗（无新意） | 🔻 衰退 |
+| 位置 | 题材 |
+|---|---|
+| 最多 | 现代、都市日常、打脸虐渣 |
+| 其次 | 逆袭、现代言情、总裁、大女主 |
+| 单部回报高（潜力） | 大男主、马甲、闪婚 |
 
-### 男频
+**其他信号**（二手报道，口径不一）：
 
-| 题材 | 状态 |
-|------|------|
-| **职场反 PUA + 系统流** | 🔥 新兴黑马（v0.3.0 SD-001 实战）|
-| 都市脑洞 + 响指系统 | 🔥 男频天花板 |
-| 都市修真种田 | 🔥 完读 Top3 |
-| 悬疑民俗 / 风水 | 🔥 上升黑马 |
-| 赘婿逆袭 | 🔻 已饱和 |
+- 「黑帮」「神豪」这类中腰部题材供给少、热度高；甜宠、霸总、逆袭的通用模板供给过剩（DataEye 上半年）
+- AI 剧在玄幻、科幻这类视觉特效题材上更受关注；红果漫剧榜「发配边关」系列三季同时进前 20（2026-07）
+- 平台扶持往漫剧和 AI 仿真人剧走；官方要求「扶持真人剧，规范 AI 剧」（广电总局 2026-11-05）
+
+**本项目实战过的**：职场反 PUA + 系统流（SD-001 重生哮天犬）、城市拟人恋综（SD-002）。
 
 详见 [`references/market-pulse.md`](references/market-pulse.md) + [`references/red-fruit-data.md`](references/red-fruit-data.md)。
 
@@ -450,13 +460,15 @@ ai-short-drama/
 
 ## 贡献
 
-PR 欢迎。重点方向：
+PR 和 issue 都欢迎，先看 [`CONTRIBUTING.md`](CONTRIBUTING.md)（接第三方付费服务有六条规矩）。issue 有三个模板：问题报告、功能建议、作品分享。
 
-- 增加题材原型库（特别是男频、漫剧、出海 TikTok）
-- 优化即梦 / Seedance 2.0 prompt 模板（Phase 1.5 分镜图工艺）
-- 4 模视频生成的 best practice 沉淀
-- 更新市场情报快照（每月一次）
-- 添加测试用例
+重点方向：
+
+- 题材原型库（男频、漫剧、AI 仿真人、出海 TikTok）
+- Seedance 2.5 / 可灵 4.0 的 30 秒多镜头出片接入
+- 4 模视频生成的 best practice、新的失败模式
+- 市场情报快照（每月一次，带出处和日期）
+- 测试用例
 
 ---
 
@@ -466,6 +478,7 @@ PR 欢迎。重点方向：
 - 工业级方法论参考：腾讯云《AI漫剧制作流程深度解析》/ 即梦官方 CLI 体验指南
 - 7 招红果必爆铁律：woshipm 业界硬数据 + 红果 TOP100 EP01 拆解
 - dreamina CLI 集成：字节跳动即梦官方 AGENT 工具
+- 配乐 / 音效脚本：Sonilo 团队（[#5](https://github.com/A-cat-with-carrots/OnlyShot/pull/5)）
 
 本 skill 在原始灵感基础上增加了：
 - 工业级 5 步流程（剧本 → 分镜 → **分镜图** → 视频 → 剪辑）
@@ -479,7 +492,8 @@ PR 欢迎。重点方向：
 - ref 库工艺偏置铁律（v0.6.0）：现代摩天楼易拟物 / 古建筑必出 chibi 人体
 - bash → Python subprocess（避中文 quoting 任务静默丢弃）
 - 36 grid × 4-10s 变奏
-- F 抽象拟人流（v0.4.0）：6 流派定调
+- F 抽象拟人流（v0.4.0）、G AI 仿真人流（v0.7.0）：7 流派定调
+- 自动初剪 + 上线前合规（v0.7.0）
 
 ---
 

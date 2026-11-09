@@ -1,9 +1,19 @@
 ---
 name: ai-short-drama
-description: 精细化 AI 短剧 IP 创作技能（v0.6.0）。三阶段架构：Phase 1 创作（剧本+ref图，反复迭代）→ Phase 1.5 分镜图（每 grid 1-4 张候选静态图 = 视频首帧，工业级核心层）→ Phase 2 出片（按集解锁，4 模自动选）。v0.6.0 关键升级：① ref 库工艺偏置铁律（现代摩天楼易拟物，古建筑必出 chibi 人体，前期 IP 设计阶段就要避坑）② 即梦 5.0 失败模式 + 敏感词清单（3 类 fail 区分 / prompt 1500 字硬上限 / 反派词替换表 / 暧昧词清单）③ 分镜图 8 段 prompt 模板（CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE）+ NOT humans 子句必加。沿用 v0.3.0 升级：Phase 1.5 分镜图层、4 模视频、ref 5-8 最优。v0.2.0：bash → Python subprocess、36 grid × 4-10s 变奏、红果必爆 7 招、工业级 ref 库 80-150 张、单 prompt 300-500 字。务必触发：用户提到短剧、微短剧、竖屏剧、AI 短剧、AI 漫剧、剧本创作、分镜、即梦/Seedance 出片、红果/番茄/抖音 IP 改编、爽剧、重生、穿越、赘婿、追妻、神医相师、AI 漫剧奇观、或"帮我做一部短剧"类请求。
+description: 精细化 AI 短剧 IP 创作技能 OnlyShot（v0.7.0）。三阶段架构：Phase 1 创作（剧本+ref图，反复迭代）→ Phase 1.5 分镜图（每 grid 1-4 张候选静态图 = 视频首帧，工业级核心层）→ Phase 2 出片（按集解锁，4 模自动选）→ 自动初剪（字幕 + 每集 AI 标识）→ 上线前检查（2026 年 AI 微短剧新规）。v0.7.0：拼接初剪.py、compliance-2026.md、出片脚本 --dry-run 先看预估积分、--model-version、G AI 仿真人流。v0.6.0 关键升级：① ref 库工艺偏置铁律（现代摩天楼易拟物，古建筑必出 chibi 人体，前期 IP 设计阶段就要避坑）② 即梦 5.0 失败模式 + 敏感词清单（3 类 fail 区分 / prompt 1500 字硬上限 / 反派词替换表 / 暧昧词清单）③ 分镜图 8 段 prompt 模板（CHARACTER/BACKGROUND/ACTION/SCENE/CAMERA/LIGHT/TEXT/STYLE）+ NOT humans 子句必加。沿用 v0.3.0 升级：Phase 1.5 分镜图层、4 模视频、ref 5-8 最优。v0.2.0：bash → Python subprocess、36 grid × 4-10s 变奏、红果必爆 7 招、工业级 ref 库 80-150 张、单 prompt 300-500 字。务必触发：用户提到短剧、微短剧、竖屏剧、AI 短剧、AI 漫剧、剧本创作、分镜、即梦/Seedance 出片、红果/番茄/抖音 IP 改编、爽剧、重生、穿越、赘婿、追妻、神医相师、AI 漫剧奇观、AI 仿真人剧、短剧初剪、AI 标识、短剧上线合规、或"帮我做一部短剧"类请求。
 ---
 
-# AI 短剧精细化 IP 创作 v0.6.0
+# AI 短剧精细化 IP 创作 v0.7.0
+
+## v0.7.0 changelog（2026-11-10）
+
+> 完整记录见 `CHANGELOG.md`。
+
+- ⭐ **阶段 4.D 自动初剪**：`python scripts/拼接初剪.py <项目> <集>` 按分镜顺序拼成 1080×1920 初剪，对白字幕、每集全程「AI生成」角标、元数据 AIGC 隐式标识自动加
+- ⭐ **阶段 4.E 上线前检查**：`references/compliance-2026.md`（2026-06 AI 微短剧分类、2026-09-01《微短剧发展管理办法》每集 AI 标识、2026-11-05「凡播必审、全量人审」）+ 模板 `10_上线前检查.md`
+- 出片脚本 `--dry-run`：先看任务和预估积分，不调 dreamina、不写文件；`生成分集视频.py --model-version`（没开即梦会员用 `seedance2.0fast`）
+- 第 7 流派 **G AI 仿真人流**：不用真人参考、每集 AI 标识、写实脸审核更严
+- 模型现状（`jimeng-cli-guide.md`）：本机 CLI 只到 Seedance 2.0（4-15 秒）；Seedance 2.5 / 可灵 4.0 能 30 秒；即梦 2026-02-09 起停用真人主体参考
 
 ## v0.6.0 changelog（2026-05-16）
 
@@ -169,7 +179,7 @@ ref 不纯（chibi 人体），分镜图加 NOT humans 也救不回来。
 
 ---
 
-## 默认参数（v0.6.0）
+## 默认参数（v0.7.0）
 
 | 项 | 默认值 | 来源 |
 |----|--------|------|

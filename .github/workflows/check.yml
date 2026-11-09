@@ -1,0 +1,48 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg (with libass) and CJK fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-cjk
+
+      - name: Compile all scripts
+        run: python -m py_compile scripts/*.py
+
+      - name: JSON files parse
+        run: |
+          python - <<'EOF'
+          import glob, json
+          files = glob.glob("assets/templates/*.json") + ["evals/evals.json"] + glob.glob("evals/fixtures/**/*.json", recursive=True)
+          for f in files:
+              json.load(open(f, encoding="utf-8"))
+          print(f"{len(files)} JSON files OK")
+          EOF
+
+      - name: Self-tests (offline, no API calls, no credits)
+        run: |
+          python scripts/生成配乐.py --self-test
+          python scripts/拼接初剪.py --self-test
+
+      - name: Dry-runs on the fixture project (must not call dreamina or write files)
+        run: |
+          python scripts/生成分镜图.py evals/fixtures/fixture-project 01 --dry-run
+          python scripts/生成分集视频.py evals/fixtures/fixture-project 01 --dry-run
+          python scripts/生成分集视频.py evals/fixtures/fixture-project 01 --dry-run --model-version seedance2.0fast
+          test -z "$(git status --porcelain)" || { git status --porcelain; echo "dry-run wrote files"; exit 1; }
