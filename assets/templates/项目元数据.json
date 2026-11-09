@@ -1,7 +1,7 @@
 {
   "project_id": "SD-XXX",
   "project_name": "<>",
-  "skill_version": "v0.1.2",
+  "skill_version": "v0.7.0",
   "version": "v1.0",
   "created_at": "YYYY-MM-DD",
   "last_modified": "YYYY-MM-DD",
@@ -18,8 +18,8 @@
   "params": {
     "duration_per_ep": 180,
     "total_episodes": 72,
-    "grids_per_ep": 60,
-    "grid_duration": 3,
+    "grids_per_ep": 36,
+    "grid_duration": "4-10",
     "genre": "<红果纯爽流|精品悬疑流|漫剧奇观流|沙雕轻喜流|年代爽剧流>",
     "platform": ["红果", "抖音"],
     "is_paid": false,
@@ -27,6 +27,14 @@
       "gender": "女频",
       "age": "30-55"
     }
+  },
+  "compliance": {
+    "investment_wan_yuan": 0,
+    "topic": "一般",
+    "category": "其他",
+    "license_or_program_no": "",
+    "ai_label": "全程角标 + 元数据（拼接初剪.py）",
+    "music_license": ""
   },
   "ref_done": false,
   "ref_summary": {

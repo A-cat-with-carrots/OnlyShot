@@ -1,6 +1,6 @@
 # 《<作品名>》
 
-> AI 短剧 IP — 由 [`ai-short-drama` skill v0.1.2](https://github.com/A-cat-with-carrots/ai-short-drama-skill) 创作
+> AI 短剧 IP — 由 [OnlyShot（`ai-short-drama` skill）](https://github.com/A-cat-with-carrots/OnlyShot) 创作
 
 ---
 
@@ -103,10 +103,11 @@ SD-XXX_<拼音>/
 > 准备进 Phase 2？告诉 skill「开始出片」+ 选要先出哪一集（建议第 1 集试水）。
 
 ### 如 Phase 2 单集进行中：
-> 1. 在 Git Bash 跑 `bash scripts/生成分集视频.sh <项目目录> <集编号>`
-> 2. 等 60 段视频生成（约 30-90 分钟）
-> 3. 在剪映按 9:16 / 1080×1920 / 30fps 拼接 + 配音 + 字幕 + AIGC 标识
-> 4. 用户审核 → 推下一集
+> 1. `python scripts/生成分集视频.py <项目目录> <集编号> --dry-run` 看预估积分，再去掉 `--dry-run` 正式跑
+> 2. 等 36 段视频生成（约 30-90 分钟）
+> 3. `python scripts/拼接初剪.py` 出初剪（字幕 + AI 标识自动加），再在剪映配音、精修
+> 4. 按 `10_上线前检查.md` 过一遍（AI 标识、类别、原创、授权）
+> 5. 用户审核 → 推下一集
 
 ---
 
@@ -135,7 +136,7 @@ dreamina login
 - [ ] dreamina CLI 装好且已登录
 - [ ] 余额够（单集约 ¥X，全 72 集约 ¥XXXX）
 - [ ] ref 图全部生好（角色 / 场景 / 道具）
-- [ ] AIGC 标识已规划（红果 2026 强制）
+- [ ] AI 标识已规划（每集明显位置 + 元数据，见 `references/compliance-2026.md`）
 - [ ] 9:16 竖屏
 - [ ] 字幕用中文括号样式
 - [ ] 配音方案：剪映 TTS / 真人 / 工作室
@@ -153,4 +154,4 @@ dreamina login
 
 ---
 
-*由 ai-short-drama v0.1.2 自动生成。修订请见 [09_修订记录.md](09_修订记录.md)。*
+*由 OnlyShot（ai-short-drama skill）自动生成。修订请见 [09_修订记录.md](09_修订记录.md)。*

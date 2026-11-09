@@ -179,7 +179,7 @@ ref 不纯（chibi 人体），分镜图加 NOT humans 也救不回来。
 | 时长变奏分布 | 4s×11 + 5s×14 + 6s×5 + 7s×3 + 8-10s×3 | v2.1 红果必爆铁律 |
 | 视频比例 | **9:16 竖屏** | 红果/抖音/快手统一 |
 | 视频模式 | **multimodal2video（全能参考）** | Seedance 2.0 Fast VIP，多 ref 输入最稳 |
-| 字幕 | **开**（中文括号包 + AIGC 标识）| 红果强制 |
+| 字幕 / AI 标识 | **开**：对白字幕 + 每集全程 AI 角标 + 元数据隐式标识（`拼接初剪.py` 自动加） | 《微短剧发展管理办法》2026-09-01 起，见 `references/compliance-2026.md` |
 | ref 库目标 | **80-150 张**（工业级）| 含动作/表情/场景多角度/道具细节 |
 | 单 prompt 字数 | **300-500 字** | 含动作物理 + 表情拆帧 + 灯光 + 字幕规格 |
 | 平台 | 红果（默认）+ 抖音（次选）| 月活 3 亿 + 引流 |
@@ -378,14 +378,14 @@ OK → 标记 `项目元数据.json` 的 `ref_done = true`，进阶段 5 批判�
 
 **前置条件**：Phase 1 完成 + ref 图齐 + 用户明确说"开始出片"。
 
-每集独立运行 4.A → 4.D。
+每集独立运行 4.A → 4.E。
 
 ## 阶段 4.A：选要出片的集
 
 ```markdown
 Phase 1 已完成 ✅。准备进 Phase 2 按集出片。
 
-成本提醒：每集 60 段视频，约 ¥X-XX（按当前 dreamina 单价计算）。
+成本提醒：每集 36 段视频，约 ¥X-XX（先跑 `python scripts/生成分集视频.py <项目> <集> --dry-run` 看预估积分）。
 
 要先出哪一集？建议顺序：
 
@@ -406,29 +406,28 @@ Phase 1 已完成 ✅。准备进 Phase 2 按集出片。
 如果该集 `分集/第XX集_<集名>/` 还不存在 → 按 `references/scripting-craft.md`（剧本）+ `references/storyboard-frame-industrial.md`（分镜图 8 段 prompt + ref 工艺偏置）+ `references/jimeng-failure-modes.md`（敏感词 / 字数上限 / 并发限流）写：
 
 - `剧本.md`
-- `分镜.json`（60 grid）
+- `分镜.json`（36 grid）
 - `镜头清单.md`
-- `即梦批量包.md`（60 段 prompt）
+- `即梦批量包.md`（36 段 prompt）
 
-## 阶段 4.C：dreamina image2video 自动出片
+## 阶段 4.C：出视频段（dreamina）
 
-读 `分集/第XX集_<集名>/即梦批量包.md` 的 60 段 prompt，**逐段调用** `dreamina image2video`：
+先预览、再提交（v0.7.0 起两个出片脚本都有 `--dry-run`）：
 
 ```bash
-dreamina image2video \
-  --image="ref图/角色/周翠英_ref.png" \
-  --prompt="<段 N 的 prompt>" \
-  --duration=3 \
-  --ratio=9:16 \
-  --download_dir="分集/第XX集/视频段/" \
-  --poll=60
+# 只列要提交的任务和预估积分：不调 dreamina、不花钱、不写文件
+python scripts/生成分集视频.py <项目目录> 01 --dry-run
+
+# 先试前 5 段
+python scripts/生成分集视频.py <项目目录> 01 5
+
+# 没开即梦会员：换成非会员模型（默认 seedance2.0fast_vip）
+python scripts/生成分集视频.py <项目目录> 01 5 --model-version seedance2.0fast
 ```
 
-每段约 5-15 秒生成（dreamina 服务端排队）。60 段约 30-90 分钟。
+脚本按文件自动选 4 种模式：`分镜图/gridXX.png` → image2video；`gridXX_首.png` + `gridXX_尾.png` → frames2video；`gridXX_帧1..N.png` → multiframe2video；都没有 → multimodal2video（全能参考，最多 9 张 ref）。旧的 `生成分集视频.sh` 已弃用。
 
-或用项目自带脚本：`scripts/生成分集视频.sh <集编号>`
-
-视频段落落到：
+视频段落到：
 
 ```
 分集/第01集_<集名>/
@@ -438,22 +437,33 @@ dreamina image2video \
 ├── 即梦批量包.md
 └── 视频段/
     ├── 段01.mp4
-    ├── 段02.mp4
     ├── ...
-    └── 段60.mp4
+    └── 段36.mp4
 ```
 
-## 阶段 4.D：剪映拼接（手动）
+积分是按 2026-05 实测单价估的，以即梦为准；本机 dreamina CLI 目前只到 Seedance 2.0 系列（单段 4-15 秒），Seedance 2.5 / 可灵 4.0 的情况见 `references/jimeng-cli-guide.md`「模型现状」。
 
-skill 不调剪映，但给完整指引：
+## 阶段 4.D：拼初剪 → 配乐 → 精修
 
-- 在剪映新建 9:16 / 1080×1920 / 30fps 项目
-- 按段 1-60 顺序导入
+**1. 自动初剪**（v0.7.0）：
+
+```bash
+python scripts/拼接初剪.py <项目目录> 01                  # 整集（缺段会停下，列出缺哪几格）
+python scripts/拼接初剪.py <项目目录> 01 1-5              # 先看前 5 格
+python scripts/拼接初剪.py <项目目录> 01 --allow-missing  # 跳过还没出片的格
+```
+
+产出（在该集目录）：`初剪.mp4`（1080×1920 / 30 帧；对白字幕烧进画面，旁白和心声浅黄；全程右上角「AI生成」角标；元数据带 AIGC 隐式标识）+ `初剪.srt` + `初剪_清单.json`。
+
+**2. 配乐**（可选）：见下面的 Sonilo 一节，或在剪映音乐库按 `02_IP简报.md` 的关键词搜。
+
+**3. 剪映精修**（skill 不调剪映）：
+
+- 导入 `初剪.mp4`，或按段导入 `视频段/`（9:16 / 1080×1920 / 30fps）
 - 段间过渡：「叠化 0.3s」（爽点段用「白闪 0.2s」）
-- 配音：剪映 TTS 或真人
-- BGM：按 02_IP简报.md 的关键词在剪映音乐库搜（或用 Sonilo 按成片自动生成，见下）
-- 字幕：所有对白上字幕，字号 60，黑边白字
-- AIGC 标识（红果 2026 强制）：片头片尾各 5s
+- 配音：剪映 TTS 或真人（不克隆真人声音）
+- 字幕：可直接导入 `初剪.srt`；字号 60，黑边白字
+- **AI 标识保留**：每集明显位置（见 4.E）
 - 输出 MP4 H.264 / 1080P
 
 ### 可选：Sonilo AI 配乐 / 音效（按成片生成）
@@ -473,11 +483,21 @@ python scripts/生成配乐.py 分集/第01集_<集名>/视频段/段13.mp4 --sf
 
 按输出秒数计费（每秒 18 积分，每次至少 200 积分），生成失败自动退款；超上限直接拒绝、不扣费。生成的音频和授权留档（每条音轨带 license_id 的 `*_授权.json`）落在视频旁边，导回剪映当 BGM / 音效轨即可。4 个示例 + 题材 prompt 模板速查表详见 `references/sonilo-audio-guide.md`。
 
+## 阶段 4.E：上线前检查（v0.7.0）
+
+按 `references/compliance-2026.md` 逐条过，填 `assets/templates/10_上线前检查.md` 存进该集目录：
+
+- 每集明显位置有 AI 标识，元数据有 `AIGC` 字段（剪映导出后用 ffprobe 查一次，丢了就补写）
+- 按投资额和题材定类别（重点 / 普通 / 其他），拿到许可证、批准文件或节目号
+- 原创（不洗稿、不翻拍）；不用真人肖像和声音；特殊题材按「重点」走
+- 配乐、音效、字体的商用授权留档；上传时勾「AI 生成内容」声明
+
 ## Phase 2 单集完成判定
 
-- 60 段视频齐
-- 用户在剪映看过初剪片
+- 视频段齐（36 段，或用户确认的段数）
+- `初剪.mp4` 出好，用户看过
 - 用户说"OK 这集可以"
+- `10_上线前检查.md` 勾完
 - 标记 `项目元数据.json` 的 `episodes_video_done.append(集号)`
 
 然后进 4.A 选下一集。

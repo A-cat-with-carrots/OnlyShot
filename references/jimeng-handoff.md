@@ -157,13 +157,13 @@ No speech bubbles, no comic panels, no split screen, no manga effects, no text o
 
 ---
 
-## 10. AIGC 标识（红果 2026 强制）
+## 10. AI 标识（2026-09-01 起）
 
-剪辑时**必须**加：
+《微短剧发展管理办法》要求 AI 生成、制作的微短剧「每集明显位置添加提示标识」，另有文件元数据里的隐式标识：
 
-- 片头 5s：「本片由 AI 生成 / AIGC」字幕
-- 片尾 5s：再次出现
-- 不加 → 红果不予上线
+- `python scripts/拼接初剪.py <项目> <集>` 默认全程右上角「AI生成」角标 + 元数据 `AIGC` 字段
+- 只在片头片尾各放 5 秒不够
+- 规则和出处见 `references/compliance-2026.md`
 
 ---
 
