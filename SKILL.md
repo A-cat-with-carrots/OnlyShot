@@ -458,18 +458,20 @@ skill 不调剪映，但给完整指引：
 
 ### 可选：Sonilo AI 配乐 / 音效（按成片生成）
 
+> 第三方付费服务（由 Sonilo 团队贡献）：成片会上传到 Sonilo 处理；免费档仅限个人非商用，发平台变现要 Pro 及以上，以 Sonilo 条款为准。
+
 手动搜曲库的替代路线。初剪拼好、配音上完、**BGM 先不加**，导出一版初剪 MP4，交给 `scripts/生成配乐.py`：
 
-- **配乐**（video-to-music）：读成片的剪辑点与情绪节奏生成 BGM，时长自动对齐。音乐自带授权、可商用（以条款为准）。视频上限 6 分钟，整集初剪（180-195s）直接跑。
-- **音效**（`--sfx`，video-to-sfx）：按画面生成同步音效，免版税素材。视频上限 3 分钟——整集贴着上限，推荐对关键段（爆点/卡点的 `视频段/段XX.mp4`）单跑，`--segments` 可把声音精确钉到动作上。
+- **配乐**（video-to-music）：读成片的剪辑点与情绪节奏生成 BGM，时长自动对齐。视频上限 6 分钟，整集初剪（180-195s）直接跑。
+- **音效**（`--sfx`，video-to-sfx）：按画面生成同步音效。视频上限 8 分钟；按秒计费，推荐只对关键段（爆点/卡点的 `视频段/段XX.mp4`）单跑，`--segments` 可把声音精确钉到动作上。
 
 ```bash
-export SONILO_API_KEY=sk-xxx    # https://sonilo.com 注册拿 Key（注册送免费额度）
+export SONILO_API_KEY=sk-xxx    # https://sonilo.com 注册拿 Key（免费档仅限个人非商用）
 python scripts/生成配乐.py 分集/第01集_<集名>/初剪.mp4
 python scripts/生成配乐.py 分集/第01集_<集名>/视频段/段13.mp4 --sfx
 ```
 
-按视频秒数计费，生成失败自动退款；超上限直接拒绝、不扣费。生成的音频和授权留档（每条音轨带 license_id 的 `*_授权.json`）落在视频旁边，导回剪映当 BGM / 音效轨即可。4 个示例 + 题材 prompt 模板速查表详见 `references/sonilo-audio-guide.md`。
+按输出秒数计费（每秒 18 积分，每次至少 200 积分），生成失败自动退款；超上限直接拒绝、不扣费。生成的音频和授权留档（每条音轨带 license_id 的 `*_授权.json`）落在视频旁边，导回剪映当 BGM / 音效轨即可。4 个示例 + 题材 prompt 模板速查表详见 `references/sonilo-audio-guide.md`。
 
 ## Phase 2 单集完成判定
 

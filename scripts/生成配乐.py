@@ -7,14 +7,15 @@
 | 模式 | 接口 | 视频上限 | 用途 |
 |------|------|---------|------|
 | 配乐（默认） | video-to-music | 6 分钟 | 整集初剪 BGM：读剪辑点与情绪节奏生成，时长自动对齐 |
-| 音效（--sfx） | video-to-sfx | 3 分钟 | 关键段同步音效：按画面生成，免版税素材 |
+| 音效（--sfx） | video-to-sfx | 8 分钟 | 关键段或整集同步音效：按画面生成 |
 
-- 配乐已获授权、可商用（以条款为准）；每条音轨带 license_id，自动存 *_授权.json 留档
+- 第三方付费服务（Sonilo）：视频会上传到 Sonilo 处理；免费档仅限个人非商用，商用以 Sonilo 条款为准
+- 每条音轨带 license_id，自动存 *_授权.json 留档
 - 按视频秒数计费，生成失败自动退款；超时长上限接口直接拒绝（不扣费）
 - 纯标准库，无第三方依赖（和本仓库其他脚本一致）
 
 准备：
-  1. https://sonilo.com 注册拿 API Key（注册送免费额度，试跑一集够用）
+  1. https://sonilo.com 注册拿 API Key（免费档每两周 2,000 积分，约够 110 秒，仅限个人非商用）
   2. export SONILO_API_KEY=sk-xxx    # 只走环境变量，绝不写进代码/配置/仓库
 
 用法：
@@ -45,7 +46,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 DEFAULT_BASE_URL = 'https://api.sonilo.com'
 MUSIC_MAX_SECONDS = 360   # 配乐接口视频上限 6 分钟
-SFX_MAX_SECONDS = 180     # 音效接口视频上限 3 分钟
+SFX_MAX_SECONDS = 480     # 音效接口视频上限 8 分钟（2026-11 官方 OpenAPI）
 UPLOAD_SIZE_WARN_MB = 300 # 常见账户上传体积上限
 POLL_INTERVAL_SECONDS = 5
 DEFAULT_TIMEOUT_SECONDS = 600
@@ -68,7 +69,7 @@ def get_api_key() -> str:
     if not key:
         raise SoniloError(
             '未配置 SONILO_API_KEY 环境变量。\n'
-            '  https://sonilo.com 注册拿 API Key（注册送免费额度），然后：\n'
+            '  https://sonilo.com 注册拿 API Key（免费档仅限个人非商用），然后：\n'
             '  export SONILO_API_KEY=sk-xxx'
         )
     return key
@@ -379,9 +380,9 @@ def run_generate(args) -> None:
     if duration and duration > cap:
         print(f'❌ 视频 {duration:.1f}s 超过{label}接口上限 {cap}s')
         if args.sfx:
-            print('  整集超 3 分钟属正常（单集 180-195s 贴着上限）。两个办法：')
-            print('  1. 对关键段单跑（视频段/段XX.mp4，每段 4-10s）—— 推荐')
-            print('  2. 剪映里导出 ≤3 分钟的段落再跑')
+            print('  两个办法：')
+            print('  1. 对关键段单跑（视频段/段XX.mp4，每段 4-10s）—— 推荐，按秒计费也更省')
+            print('  2. 剪映里导出 ≤8 分钟的段落再跑')
         else:
             print('  剪映里把初剪切到 6 分钟以内再导出')
         sys.exit(1)

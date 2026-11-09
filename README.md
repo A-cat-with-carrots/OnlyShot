@@ -230,7 +230,7 @@ python scripts/生成配乐.py 分集/第01集_<集名>/初剪.mp4              
 python scripts/生成配乐.py 分集/第01集_<集名>/视频段/段13.mp4 --sfx   # 音效：关键段按画面生成
 ```
 
-音乐自带授权、可商用（以条款为准）；音效为免版税素材。4 个示例 + 题材 prompt 模板速查表见 [`references/sonilo-audio-guide.md`](references/sonilo-audio-guide.md)。
+Sonilo 是第三方付费服务（由 Sonilo 团队贡献）：成片会上传到 Sonilo 处理；免费档仅限个人非商用，发平台变现要 Pro 及以上，以 Sonilo 条款为准。4 个示例 + 题材 prompt 模板速查表见 [`references/sonilo-audio-guide.md`](references/sonilo-audio-guide.md)。
 
 ---
 
