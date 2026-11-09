@@ -1,5 +1,5 @@
 """
-生成分集视频.py（v0.3.0）
+生成分集视频.py（v0.7.0）
 工业级 5 步流程 Step 4：分镜图 → 视频段。
 
 支持 4 种模式（按优先级自动选）：
@@ -22,12 +22,21 @@
     python 生成分集视频.py D:/projects/SD-001 01 5         # 跑前 5 段试水
     python 生成分集视频.py D:/projects/SD-001 01           # 全跑
     python 生成分集视频.py D:/projects/SD-001 01 --mode=multimodal2video  # 强制旧模式
+    python 生成分集视频.py D:/projects/SD-001 01 --dry-run       # 只看每段走哪种模式、缺哪些 ref、预估积分；不调 dreamina、不写文件
+    python 生成分集视频.py D:/projects/SD-001 01 5 --model-version seedance2.0fast   # 没开即梦会员时用非会员模型
 """
 import subprocess, sys, re, json, time, argparse
 from pathlib import Path
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
+
+# dreamina CLI 1dcd265（2026-04 构建）支持的视频模型；_vip 是即梦会员通道
+VIDEO_MODELS = ['seedance2.0', 'seedance2.0fast', 'seedance2.0_vip', 'seedance2.0fast_vip']
+DEFAULT_VIDEO_MODEL = 'seedance2.0fast_vip'
+# 预估用的单价（2026-05 实测 seedance2.0fast_vip 每秒 11 积分；约 14 积分 1 元）。其他模型和现价以即梦为准
+CREDITS_PER_SECOND = 11
+CREDITS_PER_YUAN = 14
 
 
 def get_visual_fingerprint(ip_brief_path: Path) -> str:
@@ -112,7 +121,8 @@ def _collect_args(mode: str, grid_num: int, frame_dir: Path, prompt: str, projec
     return {'refs': refs, 'missing': missing}
 
 
-def submit_segment(grid_num: int, duration: int, prompt: str, mode: str, mode_args: dict) -> tuple[str | None, str | None]:
+def submit_segment(grid_num: int, duration: int, prompt: str, mode: str, mode_args: dict,
+                   model_version: str = DEFAULT_VIDEO_MODEL) -> tuple[str | None, str | None]:
     """提交视频任务。返回 (submit_id, queue_status)。"""
     cmd = ['dreamina', mode]
 
@@ -156,7 +166,7 @@ def submit_segment(grid_num: int, duration: int, prompt: str, mode: str, mode_ar
     if mode != 'multiframe2video':
         cmd += ['--duration', str(duration)]
         cmd += ['--video_resolution', '720p']
-        cmd += ['--model_version', 'seedance2.0fast_vip']
+        cmd += ['--model_version', model_version]
     if mode == 'multimodal2video':
         cmd += ['--ratio', '9:16']
     cmd += ['--poll', '60']
@@ -235,6 +245,46 @@ def download_one(sid: str, grid_num: int, video_dir: Path) -> bool:
     return True
 
 
+def dry_run_plan(grids: list, video_dir: Path, frame_dir: Path, project_dir: Path,
+                 force_mode: str | None, fp: str) -> None:
+    """只读：每段走哪种模式、要哪些文件、缺什么、预估积分。不调 dreamina、不写文件。"""
+    by_mode: dict[str, int] = {}
+    todo_seconds, missing_total, skipped = 0, 0, 0
+    print('🧪 --dry-run 计划：')
+    for g in grids:
+        n = g['grid_number']
+        d = g.get('_duration', 5)
+        if (video_dir / f'段{n:02d}.mp4').exists():
+            skipped += 1
+            print(f'  段 {n:02d}: 已存在，跳过')
+            continue
+        prompt = g['jimeng_prompt']
+        mode, mode_args = detect_mode(n, frame_dir, prompt, project_dir, force_mode)
+        by_mode[mode] = by_mode.get(mode, 0) + 1
+        todo_seconds += d
+        note = ''
+        if mode == 'multimodal2video':
+            refs, missing = mode_args.get('refs', []), mode_args.get('missing', [])
+            missing_total += len(missing)
+            note = f'{len(refs)} 张 ref' + (f'，缺 {missing}' if missing else '')
+            if not refs:
+                note += '（没有任何 ref，会提交失败）'
+        elif mode == 'image2video':
+            note = mode_args['image'].name + ('' if mode_args['image'].exists() else '（缺）')
+        elif mode == 'frames2video':
+            note = '首帧 + 尾帧'
+        elif mode == 'multiframe2video':
+            note = f'{len(mode_args.get("frames", []))} 帧'
+        full_len = len(f'{prompt}. {fp}' if fp else prompt)
+        print(f'  段 {n:02d}: {d}s [{mode}] {note}；prompt {full_len} 字')
+    cost = todo_seconds * CREDITS_PER_SECOND
+    print(f'\n  要出 {sum(by_mode.values())} 段 / {todo_seconds}s（已存在 {skipped} 段）；模式 {by_mode}')
+    if missing_total:
+        print(f'  ⚠ 缺 ref {missing_total} 处：先补图，或跑 python scripts/ref完备性检查.py <项目目录> <集>')
+    print(f'  预估 {cost} 积分（≈ ¥{cost / CREDITS_PER_YUAN:.0f}；按 2026-05 实测单价，以即梦为准）')
+    print('\n（没有调用 dreamina，没有写任何文件）')
+
+
 def find_episode_dir(project_dir: Path, ep_num: str) -> Path | None:
     ep_root = project_dir / '分集'
     if not ep_root.exists():
@@ -246,7 +296,7 @@ def find_episode_dir(project_dir: Path, ep_num: str) -> Path | None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='生成分集视频 v0.3.0')
+    parser = argparse.ArgumentParser(description='生成分集视频 v0.7.0')
     parser.add_argument('project_dir')
     parser.add_argument('ep_num')
     parser.add_argument('limit', type=int, nargs='?', default=0, help='段数上限（0=全跑）')
@@ -254,6 +304,10 @@ def main():
                         default='auto', help='模式（auto = 按文件存在自动选）')
     parser.add_argument('--max-rounds', type=int, default=30)
     parser.add_argument('--skip-precheck', action='store_true')
+    parser.add_argument('--model-version', choices=VIDEO_MODELS, default=DEFAULT_VIDEO_MODEL,
+                        help=f'视频模型（默认 {DEFAULT_VIDEO_MODEL}；没开即梦会员用 seedance2.0fast）')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='只看每段走哪种模式、缺哪些 ref、预估积分；不调 dreamina、不写文件')
     args = parser.parse_args()
 
     project_dir = Path(args.project_dir).resolve()
@@ -272,25 +326,14 @@ def main():
         print(f'❌ 分镜.json 不存在')
         sys.exit(1)
 
-    # 自检 dreamina
-    try:
-        ret = subprocess.run(['dreamina', 'user_credit'], capture_output=True, text=True, timeout=15)
-        if ret.returncode != 0 or 'total_credit' not in (ret.stdout or ''):
-            print('❌ dreamina 未登录')
-            sys.exit(1)
-    except Exception:
-        print('❌ dreamina CLI 失败')
-        sys.exit(1)
-
     video_dir = ep_dir / '视频段'
-    video_dir.mkdir(parents=True, exist_ok=True)
     frame_dir = ep_dir / '分镜图'
 
     fp = get_visual_fingerprint(project_dir / '02_IP简报.md')
 
-    print(f'\n=== 生成第 {ep_num} 集视频（v0.3.0）===')
+    print(f'\n=== 生成第 {ep_num} 集视频（v0.7.0）===')
     print(f'  集目录: {ep_dir}')
-    print(f'  模式: {args.mode}（auto = 按文件自动选）')
+    print(f'  模式: {args.mode}（auto = 按文件自动选）；模型: {args.model_version}')
     print(f'  分镜图目录: {frame_dir}{"（不存在 → fallback multimodal2video）" if not frame_dir.exists() else ""}')
     print(f'  视觉指纹: {fp[:80]}...' if fp else '  ⚠️ 无视觉指纹')
 
@@ -300,12 +343,27 @@ def main():
         grids = grids[:args.limit]
 
     total_d = sum(g.get('_duration', 5) for g in grids)
-    cost = total_d * 11
-    print(f'🎬 共 {len(grids)} 段 / {total_d}s / 估 {cost} 积分（≈ ¥{cost / 14:.0f}）\n')
+    cost = total_d * CREDITS_PER_SECOND
+    print(f'🎬 共 {len(grids)} 段 / {total_d}s / 估 {cost} 积分（≈ ¥{cost / CREDITS_PER_YUAN:.0f}；按 2026-05 实测单价，以即梦为准）\n')
+
+    force_mode = None if args.mode == 'auto' else args.mode
+    if args.dry_run:
+        dry_run_plan(grids, video_dir, frame_dir, project_dir, force_mode, fp)
+        return
+
+    # 自检 dreamina
+    try:
+        ret = subprocess.run(['dreamina', 'user_credit'], capture_output=True, text=True, timeout=15)
+        if ret.returncode != 0 or 'total_credit' not in (ret.stdout or ''):
+            print('❌ dreamina 未登录')
+            sys.exit(1)
+    except Exception:
+        print('❌ dreamina CLI 失败')
+        sys.exit(1)
+    video_dir.mkdir(parents=True, exist_ok=True)
 
     # 提交所有
     submits = {}
-    force_mode = None if args.mode == 'auto' else args.mode
     for g in grids:
         n = g['grid_number']
         out_file = video_dir / f'段{n:02d}.mp4'
@@ -317,7 +375,7 @@ def main():
         prompt_full = f'{prompt}. {fp}' if fp else prompt
 
         mode, mode_args = detect_mode(n, frame_dir, prompt, project_dir, force_mode)
-        sid, qstatus = submit_segment(n, d, prompt_full, mode, mode_args)
+        sid, qstatus = submit_segment(n, d, prompt_full, mode, mode_args, args.model_version)
         if not sid:
             continue
         if qstatus and qstatus != 'Generating':

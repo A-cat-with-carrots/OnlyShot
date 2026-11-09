@@ -1,5 +1,5 @@
 """
-生成分镜图.py（v0.6.0）
+生成分镜图.py（v0.7.0）
 每 grid 用 dreamina text2image 出 1-4 张候选关键帧。
 分镜图 = 视频首帧（image2video / frames2video 输入）。
 
@@ -15,6 +15,7 @@
     python 生成分镜图.py D:/projects/SD-001 01 1-5       # 前 5 grid 试水
     python 生成分镜图.py D:/projects/SD-001 01 1         # 单 grid
     python 生成分镜图.py D:/projects/SD-001 01 1 --candidates=4   # 1 grid 4 张候选
+    python 生成分镜图.py D:/projects/SD-001 01 --dry-run         # 只看要出几张、预估积分、预检结果；不调 dreamina、不写文件
 
 v0.6.0 新增预检 flag（SD-002 实战教训）：
   --no-fingerprint   不 append 视觉指纹（防 ref 风格词污染分镜图 dramatic 光）
@@ -54,6 +55,10 @@ SENSITIVE_CN = ['反派', '不死心']
 
 # 字数上限（即梦 5.0 实测，dreamina CLI 2026-05）
 PROMPT_LEN_LIMIT = 1500
+
+# 预估用的单价（2026-05 实测：text2image 5.0 / 2k 每张 3 积分；约 14 积分 1 元）。现价以即梦为准
+IMAGE_CREDITS = 3
+CREDITS_PER_YUAN = 14
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -138,6 +143,7 @@ def main():
     parser.add_argument('--no-fingerprint', action='store_true', help='不 append 02_IP简报.md 的视觉指纹（分镜图工艺隔离时用，避免 ref 词污染 dramatic 光）')
     parser.add_argument('--check-length', action='store_true', help='v0.6.0 预检：prompt 字数 > 1500 时 warn（即梦 5.0 实测上限）')
     parser.add_argument('--check-sensitive', action='store_true', help='v0.6.0 预检：扫反派词 / 暧昧词 / 中文敏感词，命中 warn（不阻断）')
+    parser.add_argument('--dry-run', action='store_true', help='v0.7.0：只看要出几张、预估积分、预检结果；不调 dreamina、不写文件')
     args = parser.parse_args()
 
     project_dir = Path(args.project_dir).resolve()
@@ -170,25 +176,27 @@ def main():
     if args.no_fingerprint:
         print('  ⚠ --no-fingerprint：跳过视觉指纹 append（分镜图工艺隔离）')
     frame_dir = ep_dir / '分镜图'
-    frame_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f'\n=== 生成第 {ep_num} 集分镜图（v0.3.0）===')
+    print(f'\n=== 生成第 {ep_num} 集分镜图（v0.7.0）===')
     print(f'  集目录: {ep_dir}')
     print(f'  grid 数: {len(grids_todo)}')
     print(f'  候选数: {candidates} 张/grid')
-    print(f'  总: {len(grids_todo) * candidates} 张 × 3 积分 = {len(grids_todo) * candidates * 3} 积分（≈ ¥{len(grids_todo) * candidates * 3 / 14:.1f}）')
+    total_imgs = len(grids_todo) * candidates
+    print(f'  总: {total_imgs} 张 × {IMAGE_CREDITS} 积分 = {total_imgs * IMAGE_CREDITS} 积分（≈ ¥{total_imgs * IMAGE_CREDITS / CREDITS_PER_YUAN:.1f}；按 2026-05 实测单价，以即梦为准）')
     print('')
 
     # v0.6.0 预检：字数 + 敏感词
-    if args.check_length or args.check_sensitive:
+    check_length = args.check_length or args.dry_run
+    check_sensitive = args.check_sensitive or args.dry_run
+    if check_length or check_sensitive:
         print('\n=== v0.6.0 预检 ===')
         for g in grids_todo:
             n = g['grid_number']
             p = g['jimeng_prompt']
             full = f'{p}, {fp}' if fp else p
-            if args.check_length and len(full) > PROMPT_LEN_LIMIT:
+            if check_length and len(full) > PROMPT_LEN_LIMIT:
                 print(f'  ⚠ grid {n}: 字数 {len(full)} > {PROMPT_LEN_LIMIT}（即梦 5.0 实测上限，可能 InvalidNode）')
-            if args.check_sensitive:
+            if check_sensitive:
                 hits_v = [w for w in SENSITIVE_VILLAIN if w in p.lower()]
                 hits_i = [w for w in SENSITIVE_INTIMATE if w in p.lower()]
                 hits_c = [w for w in SENSITIVE_CN if w in p]
@@ -210,9 +218,19 @@ def main():
                 continue
             todo.append((n, ci, g['jimeng_prompt']))
 
+    if args.dry_run:
+        exist = len(grids_todo) * candidates - len(todo)
+        print(f'\n🧪 --dry-run：要出 {len(todo)} 张（已存在 {exist} 张跳过），预估 {len(todo) * IMAGE_CREDITS} 积分（≈ ¥{len(todo) * IMAGE_CREDITS / CREDITS_PER_YUAN:.1f}）')
+        for n in sorted({t[0] for t in todo}):
+            k = sum(1 for t in todo if t[0] == n)
+            print(f'  grid {n:02d}: {k} 张候选 → {frame_dir.name}/grid{n:02d}_候选N.png')
+        print('\n（没有调用 dreamina，没有写任何文件）')
+        return
+
     if not todo:
         print('全部已存在，无需生成')
     else:
+        frame_dir.mkdir(parents=True, exist_ok=True)
         print(f'📤 并发提交 {len(todo)} 张...\n')
         with ThreadPoolExecutor(max_workers=4) as ex:
             futures = {ex.submit(submit_one, n, ci, p, fp): (n, ci) for n, ci, p in todo}
