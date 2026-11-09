@@ -1,8 +1,34 @@
-# dreamina CLI 集成详细指南（v0.6.0）
+# dreamina CLI 集成详细指南（v0.7.0）
 
 字节官方提供的面向 AGENT 的 CLI 工具包。本技能在 Phase 1 阶段 3.5（ref 图）+ Phase 2 阶段 4.C（视频出片）调用。
 
-来源：字节官方《即梦 CLI 体验指南》v1.4.3（2026-05-07）
+来源：字节官方《即梦 CLI 体验指南》v1.4.3（2026-05-07）；v0.7.0 按本机 CLI（1dcd265，2026-04-22 构建）的 `-h` 输出和 2026-11 的公开报道更新。
+
+## v0.7.0：模型现状（2026-11）
+
+**本机 CLI 能用的**（`dreamina <命令> -h` 为准）：
+
+| 命令 | 模型 | 限制 |
+|---|---|---|
+| `text2image` | 3.0 / 3.1 / 4.0 / 4.1 / 4.5 / 4.6 / 5.0（脚本用 5.0、2k） | 比例 21:9 到 9:16 |
+| `image2video` / `frames2video` / `text2video` | `seedance2.0`、`seedance2.0fast`、`seedance2.0_vip`、`seedance2.0fast_vip`（另有 3.0 / 3.5pro） | Seedance 2.0 系列单段 **4-15 秒、720p** |
+| `multimodal2video`（全能参考） | Seedance 2.0 系列 | 最多 **9 张图、3 段视频、3 段音频**（音频 2-15 秒） |
+| `multiframe2video` | 不能指定模型 | 每段过渡 0.5-8 秒 |
+
+`_vip` 是即梦会员通道。没开会员时用 `python scripts/生成分集视频.py ... --model-version seedance2.0fast`。
+
+**网页端和新模型**（CLI 还没有，二手报道，以官方为准）：
+
+- **Seedance 2.5**（2026-07-31 上线即梦、豆包专业版）：单次 30 秒，可多轮延长；参考最多 30 张图、10 段视频、10 段音频；能局部修改、增删替换；API 说近期上火山方舟。
+- **可灵 4.0**（2026-10-15）：单次 30 秒；全能参考（图 ≤ 10、视频 ≤ 5、主体 ≤ 7）；最多 10 张关键帧。
+- Sora 2 的 API 已在 2026-09-24 下线。
+
+**对本技能意味着**：
+
+- 36 格 × 4-10 秒是按 15 秒上限设计的，CLI 没升级前照旧；想用 2.5 的 30 秒多镜头，可以在网页端把 `即梦批量包.md` 里相邻几段的 prompt 合成一段生成。等 CLI 支持 2.5，脚本再跟上。
+- **即梦 2026-02-09 起停用真人图片、视频作主体参考**：ref 图一律用生成的角色形象（这也是合规要求，见 `compliance-2026.md`）。
+- 升级 CLI：重跑官方安装命令。认准官方地址 `jimeng.jianying.com/cli`，第三方技能市场上有冒充的 seedance CLI 被标记可疑。
+- 跑之前先 `--dry-run`：`生成分镜图.py`、`生成分集视频.py` 都会列出要提交的任务和预估积分，不调 dreamina、不写文件。
 
 ## v0.6.0 新增（必读）
 
@@ -115,8 +141,8 @@ bash scripts/setup-jimeng.sh
 ### 验证安装
 
 ```bash
-dreamina --version
-# 期望输出：dreamina v1.4.2 或更高
+dreamina version
+# 输出 JSON：version / commit / build_time（2026-04 起的版本）
 ```
 
 ---
@@ -129,13 +155,14 @@ dreamina --version
 dreamina login
 ```
 
-会自动拉浏览器去授权（用即梦账号登录）。如果浏览器没拉起：
+2026-04 起改成 OAuth 设备登录：终端打印 `verification_uri`、`user_code`、`device_code`，在浏览器打开地址、输入 code 授权，终端等授权完成。旧的浏览器回调和手动导入登录已不再使用。
+
+没有浏览器的环境（服务器、Agent 沙箱）：
 
 ```bash
-dreamina login --debug
+dreamina login --headless                                   # 打印授权信息后直接退出
+dreamina login checklogin --device_code=<device_code> --poll=30   # 授权后再取登录态
 ```
-
-会打印调试信息和回调地址。
 
 登录态存：`~/.dreamina_cli/credential.json`
 
@@ -385,4 +412,4 @@ ref图/**/*.jpg
 - v1.3.2（2026-04-05）：seedance2.0fast_vip 通道
 - v1.3.1（2026-04-04）：自动更新检测
 
-每月跑 `dreamina --version` 比对最新版，及时更新。
+每月跑 `dreamina version` 比对最新版，及时更新。
