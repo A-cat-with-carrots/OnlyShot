@@ -7,7 +7,9 @@
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v0.7.0-orange)](CHANGELOG.md)
 
-**▶ [27-second promo video](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)** (v0.7.0 release assets: English and Chinese, 1080p and 4K)
+https://github.com/user-attachments/assets/a9402992-87c8-4915-93d7-b781f6951587
+
+27-second promo · 4K and the Chinese version are in the [v0.7.0 release](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)
 
 ## At a glance
 

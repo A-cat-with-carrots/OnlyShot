@@ -8,7 +8,9 @@
 [![Version](https://img.shields.io/badge/Version-v0.7.0-orange)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)]()
 
-**▶ [27 秒宣传片](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)**（v0.7.0 Release 附件：中文 / 英文，1080p 和 4K）
+https://github.com/user-attachments/assets/187a23e5-1b51-47d8-83d2-3b529b44157c
+
+27 秒宣传片 · 4K 和英文版在 [v0.7.0 Release](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)
 
 ---
 
