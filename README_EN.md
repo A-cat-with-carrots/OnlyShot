@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v0.7.0-orange)](CHANGELOG.md)
 
+**▶ [27-second promo video](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)** (v0.7.0 release assets: English and Chinese, 1080p and 4K)
+
 ## At a glance
 
 - **What**: a Claude Code skill (skill name `ai-short-drama`). Give it one line of premise; it walks you through writing and producing a vertical short drama, and every step is saved as a file.
