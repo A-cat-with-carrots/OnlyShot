@@ -9,8 +9,6 @@
 
 https://github.com/user-attachments/assets/a9402992-87c8-4915-93d7-b781f6951587
 
-27-second promo · 4K and the Chinese version are in the [v0.7.0 release](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)
-
 ## At a glance
 
 - **What**: a Claude Code skill (skill name `ai-short-drama`). Give it one line of premise; it walks you through writing and producing a vertical short drama, and every step is saved as a file.

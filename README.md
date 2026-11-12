@@ -10,8 +10,6 @@
 
 https://github.com/user-attachments/assets/187a23e5-1b51-47d8-83d2-3b529b44157c
 
-27 秒宣传片 · 4K 和英文版在 [v0.7.0 Release](https://github.com/A-cat-with-carrots/OnlyShot/releases/tag/v0.7.0)
-
 ---
 
 ## 30 秒看懂
